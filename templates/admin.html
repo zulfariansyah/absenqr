@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Admin - {{ event_settings.event_name }}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- HTML5 QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        #reader video {
+            border-radius: 1rem;
+            object-fit: cover;
+        }
+        #reader {
+            border: none !important;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between antialiased">
+    <!-- Console Top Navbar -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Branding -->
+                <div class="flex items-center gap-3 truncate max-w-lg">
+                    {% if event_settings.event_logo %}
+                        <img src="{{ event_settings.event_logo }}" alt="Logo" class="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-200 shadow-sm">
+                    {% else %}
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                    {% endif %}
+                    <div class="truncate">
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight block leading-tight truncate">{{ event_settings.event_name }}</span>
+                            <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full {% if is_superadmin %}bg-purple-100 text-purple-800{% else %}bg-emerald-100 text-emerald-800{% endif %} text-[10px] font-bold uppercase tracking-wider">
+                                {{ 'Super Admin' if is_superadmin else 'Petugas Admin' }}
+                            </span>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-600 tracking-wider uppercase">Sistem Absensi & Registrasi</span>
+                    </div>
+                </div>
+
+                <!-- Right Actions: User Badge, LAN Wi-Fi Link & Logout -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                        <div class="w-6 h-6 rounded-full {% if is_superadmin %}bg-purple-600{% else %}bg-emerald-600{% endif %} text-white flex items-center justify-center text-[10px] font-bold">
+                            {{ admin_name[0] | upper }}
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-slate-800 leading-none">{{ admin_name }}</div>
+                            <div class="text-[10px] text-slate-400 font-mono">@{{ admin_username }}</div>
+                        </div>
+                    </div>
+
+                    <button onclick="openLanModal()" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5" title="Buka QR Link Akses Jaringan Lokal">
+                        <i data-lucide="wifi" class="w-4 h-4 text-emerald-600"></i>
+                        <span class="hidden lg:inline">Akses Wi-Fi</span>
+                    </button>
+                    <button onclick="handleLogout()" type="button" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition flex items-center gap-1.5">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <!-- Top Bar: Header & Main Navigation Tabs -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl {% if is_superadmin %}bg-purple-600 shadow-purple-600/20{% else %}bg-emerald-600 shadow-emerald-600/20{% endif %} flex items-center justify-center text-white shadow-md">
+                    <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Console Absensi Seminar</h1>
+                    <p class="text-xs text-slate-500">Masuk sebagai: <strong>{{ admin_name }}</strong> ({% if is_superadmin %}Super Administrator{% else %}Petugas Absensi{% endif %})</p>
+                </div>
+            </div>
+
+            <!-- Navigation Menus -->
+            <div class="flex flex-wrap items-center p-1 bg-slate-100 rounded-xl border border-slate-200 gap-1">
+                <button id="navScanBtn" onclick="switchMainMenu('scan')"
+                    class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-sm">
+                    <i data-lucide="scan-line" class="w-4 h-4"></i>
+                    <span>1. Scan Absensi</span>
+                </button>
+                <button id="navInfoBtn" onclick="switchMainMenu('info')"
+                    class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>2. Informasi Peserta</span>
+                </button>
+                <button id="navSettingsBtn" onclick="switchMainMenu('settings')"
+                    class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>3. Pengaturan Acara</span>
+                </button>
+                {% if is_superadmin %}
+                <button id="navAdminUsersBtn" onclick="switchMainMenu('admin_users')"
+                    class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200">
+                    <i data-lucide="user-cog" class="w-4 h-4"></i>
+                    <span>4. Manajemen Admin</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards (Always Visible) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Total Registrasi -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Pendaftar</div>
+                    <div class="text-2xl font-extrabold text-slate-900" id="statTotal">0</div>
+                </div>
+            </div>
+
+            <!-- Card 2: Belum Hadir (Pendaftar) -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-xs text-amber-700 font-semibold uppercase tracking-wider">Belum Hadir (Pendaftar)</div>
+                    <div class="text-2xl font-extrabold text-amber-600" id="statPendaftar">0</div>
+                </div>
+            </div>
+
+            <!-- Card 3: Sudah Hadir (Peserta) -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-xs text-emerald-700 font-semibold uppercase tracking-wider">Sudah Hadir (Peserta)</div>
+                    <div class="text-2xl font-extrabold text-emerald-600" id="statPeserta">0</div>
+                </div>
+            </div>
+
+            <!-- Card 4: Persentase Kehadiran -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="percent" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-xs text-purple-700 font-semibold uppercase tracking-wider">Tingkat Kehadiran</div>
+                    <div class="text-2xl font-extrabold text-purple-700" id="statRate">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 1: SCAN ABSENSI (MENU 1)                                          -->
+        <!-- ========================================================================= -->
+        <div id="sectionScan" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Camera Scanner Box (7 cols) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                            <h2 class="font-bold text-sm sm:text-base">Kamera Pemindai QR Code</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="cameraSelect" class="bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 max-w-[160px] sm:max-w-xs">
+                                <option value="">Pilih Kamera...</option>
+                            </select>
+                            <button id="toggleCameraBtn" onclick="toggleScanner()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                                <span id="cameraBtnLabel">Nyalakan Kamera</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 flex-1 flex flex-col justify-center items-center bg-slate-950 min-h-[320px] sm:min-h-[400px] relative">
+                        <!-- Scanner Canvas Container -->
+                        <div id="reader" class="w-full max-w-sm sm:max-w-md mx-auto overflow-hidden rounded-2xl"></div>
+
+                        <!-- Placeholder when camera is off -->
+                        <div id="cameraPlaceholder" class="text-center p-6 text-slate-400 space-y-3">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
+                                <i data-lucide="camera-off" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-300 text-sm">Kamera Belum Aktif</p>
+                                <p class="text-xs text-slate-500 mt-1 max-w-xs">Klik tombol "Nyalakan Kamera" di atas atau gunakan opsi pilih foto QR di bawah.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fallback Manual Input & Image/Photo Upload -->
+                    <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-2">
+                        <div class="text-xs font-semibold text-slate-600">Opsi Alternatif Scan:</div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <div class="flex-1 flex gap-2">
+                                <input type="text" id="manualQrInput" placeholder="Ketik 10 Karakter Kode QR..." maxlength="10"
+                                    class="flex-1 uppercase font-mono tracking-wider px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                <button onclick="submitManualCode()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
+                                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                    <span>Verifikasi</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQrFileUpload(this)">
+                                <button onclick="document.getElementById('qrFileInput').click()" type="button" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 border border-emerald-300">
+                                    <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                                    <span>Pilih Gambar / Foto QR</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Real-time Scan Result Card (5 cols) -->
+                <div class="lg:col-span-5 flex flex-col">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
+                                <h2 class="font-bold text-sm text-slate-800">Hasil Pemindaian Terakhir</h2>
+                            </div>
+                            <span id="scanStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
+                                Menunggu Scan
+                            </span>
+                        </div>
+
+                        <div class="p-6 flex-1 flex flex-col justify-center" id="scanResultContainer">
+                            <!-- Initial Empty State -->
+                            <div id="scanEmptyState" class="text-center py-10 space-y-3">
+                                <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                                    <i data-lucide="scan" class="w-8 h-8 animate-pulse"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-700 text-sm">Arahkan Kamera ke QR Code</p>
+                                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                                        Informasi pendaftar akan langsung muncul di sini dan statusnya otomatis berubah menjadi <strong>Peserta Hadir</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Result Card (Populated dynamically) -->
+                            <div id="scanResultCard" class="hidden space-y-5 animate-in fade-in zoom-in duration-200">
+                                <div id="resultBanner" class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+                                    <div id="resultIcon" class="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md">
+                                        <i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>
+                                    </div>
+                                    <h3 id="resultTitle" class="text-base font-extrabold text-emerald-900">BERHASIL ABSENSI!</h3>
+                                    <p id="resultSubtitle" class="text-xs text-emerald-700 mt-0.5">Status diubah menjadi Peserta (Hadir)</p>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs space-y-2.5 divide-y divide-slate-200/80">
+                                    <div class="flex justify-between items-center pb-1">
+                                        <span class="text-slate-500 font-medium">Kode QR:</span>
+                                        <span id="resQrCode" class="font-mono text-sm font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">Nama Lengkap:</span>
+                                        <span id="resNama" class="font-bold text-slate-900 text-right text-sm">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">NIM / NIP:</span>
+                                        <span id="resNim" class="font-bold font-mono text-slate-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">No. HP / WA:</span>
+                                        <span id="resHp" class="font-bold font-mono text-emerald-700">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">Institusi:</span>
+                                        <span id="resInstitusi" class="font-bold text-slate-800 text-right">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">Pekerjaan:</span>
+                                        <span id="resPekerjaan" class="font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded border border-slate-200">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2">
+                                        <span class="text-slate-500 font-medium">Waktu Absen:</span>
+                                        <span id="resWaktu" class="font-semibold text-slate-700">-</span>
+                                    </div>
+                                </div>
+
+                                <div class="text-center">
+                                    <button onclick="resetScanCard()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5">
+                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                        <span>Siap Scan Pendaftar Berikutnya</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 2: INFORMASI PESERTA (MENU 2 DENGAN SUB-MENU SAMPING)             -->
+        <!-- ========================================================================= -->
+        <div id="sectionInfo" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Sub-Menu Sidebar (3 cols) -->
+                <div class="lg:col-span-3 space-y-3">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-2">Kategori Kehadiran</div>
+                        <nav class="space-y-1.5">
+                            <!-- Sub-menu 1: Pendaftar (Belum Hadir) -->
+                            <button id="tabPendaftarBtn" onclick="switchInfoSubTab('pendaftar')"
+                                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all bg-amber-50 text-amber-900 border border-amber-200 shadow-sm">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+                                        <i data-lucide="clock" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="leading-tight">Pendaftar</div>
+                                        <div class="text-[11px] font-normal text-amber-700">Belum Hadir</div>
+                                    </div>
+                                </div>
+                                <span id="badgeSubPendaftar" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-amber-200 text-amber-900">0</span>
+                            </button>
+
+                            <!-- Sub-menu 2: Peserta (Sudah Hadir) -->
+                            <button id="tabPesertaBtn" onclick="switchInfoSubTab('peserta')"
+                                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all text-slate-700 hover:bg-slate-100">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="leading-tight">Peserta</div>
+                                        <div class="text-[11px] font-normal text-slate-500">Sudah Scan Hadir</div>
+                                    </div>
+                                </div>
+                                <span id="badgeSubPeserta" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-slate-200 text-slate-800">0</span>
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Export and Import Utility Box -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Ekspor & Impor Data</div>
+                        <p class="text-xs text-slate-300">Backup atau restore data seminar dalam format Excel / CSV</p>
+                        <div class="space-y-2 pt-1">
+                            <a id="exportCurrentBtn" href="/api/export-csv?status=pendaftar"
+                                class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                <span id="exportBtnLabel">Export CSV Pendaftar</span>
+                            </a>
+                            <a href="/api/export-csv"
+                                class="w-full py-2 px-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Export Semua Data</span>
+                            </a>
+                            <button type="button" onclick="openImportModal()"
+                                class="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                                <span>📥 Impor Data dari CSV</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Table & Data Area (9 cols) -->
+                <div class="lg:col-span-9 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <!-- Table Controls Header -->
+                    <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 id="tableTitle" class="text-lg font-black text-slate-900 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                Daftar Pendaftar (Belum Hadir)
+                            </h2>
+                            <p id="tableSubtitle" class="text-xs text-slate-500 mt-0.5">
+                                Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.
+                            </p>
+                        </div>
+
+                        <!-- Search and Filters -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="relative flex-1 sm:w-48">
+                                <input type="text" id="searchInput" placeholder="Cari nama, NIM, No HP, inst..."
+                                    class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                                </div>
+                            </div>
+
+                            <select id="filterPekerjaan" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white">
+                                <option value="Semua">Semua Profesi</option>
+                                <option value="Mahasiswa">Mahasiswa</option>
+                                <option value="Dosen">Dosen</option>
+                                <option value="Praktisi">Praktisi</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+
+                            <button onclick="openImportModal()" class="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition flex items-center gap-1.5" title="Impor Data dari CSV">
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                <span class="hidden sm:inline">Impor CSV</span>
+                            </button>
+
+                            <button onclick="loadParticipantsData()" class="p-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 transition" title="Muat Ulang Data">
+                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table Content -->
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3 px-4 w-12 text-center">No</th>
+                                    <th class="py-3 px-4">Kode QR</th>
+                                    <th class="py-3 px-4">NIM / NIP</th>
+                                    <th class="py-3 px-4">Nama Lengkap</th>
+                                    <th class="py-3 px-4">No. HP / WA</th>
+                                    <th class="py-3 px-4">Institusi</th>
+                                    <th class="py-3 px-4">Pekerjaan</th>
+                                    <th class="py-3 px-4" id="colWaktuHeader">Waktu Daftar</th>
+                                    <th class="py-3 px-4 text-center w-28">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participantTableBody" class="divide-y divide-slate-200">
+                                <tr>
+                                    <td colspan="9" class="text-center py-12 text-slate-400">
+                                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600"></i>
+                                        Memuat data...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Table Footer Pagination/Count -->
+                    <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
+                        <div>Menampilkan <span id="tableCount" class="font-bold text-slate-800">0</span> baris data</div>
+                        <div class="text-[11px] text-slate-400">Klik QR Code untuk melihat/unduh tiket</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 3: PENGATURAN ACARA & PROFIL (MENU 3)                             -->
+        <!-- ========================================================================= -->
+        <div id="sectionSettings" class="hidden space-y-6">
+            <!-- Event Identity Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center text-emerald-400">
+                            <i data-lucide="sliders" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-base sm:text-lg">Pengaturan Identitas Acara</h2>
+                            <p class="text-xs text-slate-300">Atur nama seminar/workshop dan logo resmi yang tampil pada form dan tiket</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold rounded-full hidden sm:inline-block">
+                        Branding Acara
+                    </span>
+                </div>
+
+                <form id="settingsForm" class="p-6 sm:p-8 space-y-6" enctype="multipart/form-data">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Column 1: Input Fields -->
+                        <div class="space-y-6">
+                            <!-- Event Name -->
+                            <div>
+                                <label for="inputEventName" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="type" class="w-4 h-4 text-emerald-600"></i>
+                                    Nama Acara / Seminar <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" id="inputEventName" name="event_name" required
+                                    value="{{ event_settings.event_name }}"
+                                    placeholder="Contoh: Seminar Nasional AI & Data Science 2026"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm">
+                                <p class="text-xs text-slate-500 mt-1">Nama ini akan tampil di judul website, formulir pendaftaran, tiket, dan laporan.</p>
+                            </div>
+
+                            <!-- Event Logo File Upload -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="image" class="w-4 h-4 text-emerald-600"></i>
+                                    Logo Resmi Acara
+                                </label>
+                                <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventLogo').click()">
+                                    <input type="file" id="inputEventLogo" name="event_logo" accept="image/*" class="hidden" onchange="handleLogoPreview(this)">
+                                    <div class="w-12 h-12 rounded-xl bg-white text-slate-400 flex items-center justify-center mx-auto mb-2 border border-slate-200 shadow-sm">
+                                        <i data-lucide="upload-cloud" class="w-6 h-6 text-emerald-600"></i>
+                                    </div>
+                                    <p class="text-xs font-semibold text-slate-700">Klik untuk memilih file logo baru</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Format didukung: PNG, JPG, JPEG, SVG, WEBP (Maksimal 5MB)</p>
+                                </div>
+
+                                <div class="flex items-center justify-between mt-2">
+                                    <span id="logoFileName" class="text-xs text-slate-500 italic">Belum ada file baru dipilih</span>
+                                    <button type="button" onclick="resetToDefaultLogo()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Gunakan Logo Bawaan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Live Preview Card -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                <i data-lucide="eye" class="w-4 h-4 text-emerald-600"></i>
+                                Pratinjau Tampilan (Live Preview)
+                            </label>
+                            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white border border-slate-700 shadow-lg text-center space-y-3">
+                                <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur p-2 mx-auto flex items-center justify-center border border-white/20 shadow-md">
+                                    <img id="previewLogoImg" src="{{ event_settings.event_logo if event_settings.event_logo else '' }}" alt="Preview Logo" class="w-full h-full object-contain {% if not event_settings.event_logo %}hidden{% endif %}">
+                                    <div id="previewDefaultIcon" class="{% if event_settings.event_logo %}hidden{% endif %} text-white flex items-center justify-center">
+                                        <i data-lucide="qr-code" class="w-8 h-8 text-emerald-400"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                                        E-Ticket Absensi
+                                    </span>
+                                    <h3 id="previewEventName" class="text-lg font-black tracking-tight mt-1.5">{{ event_settings.event_name }}</h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Sistem Absensi & Registrasi QR Code</p>
+                                </div>
+
+                                <div class="pt-3 border-t border-slate-700/80 text-[11px] text-slate-400 flex items-center justify-center gap-1">
+                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                    <span>Logo & nama acara langsung tersinkronisasi</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
+                        <button type="submit" id="saveSettingsBtn"
+                            class="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 transition flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span id="saveSettingsBtnText">Simpan Perubahan Acara</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Profile & Personal Password Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <i data-lucide="key-round" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-base text-slate-900">Ubah Password Akun Saya (@{{ admin_username }})</h2>
+                        <p class="text-xs text-slate-500">Perbarui kata sandi untuk akun yang sedang aktif</p>
+                    </div>
+                </div>
+
+                <form id="changePassForm" class="p-6 sm:p-8 space-y-4 max-w-xl">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Tampilan</label>
+                        <input type="text" id="myNama" value="{{ admin_name }}" placeholder="Nama Anda" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Saat Ini <span class="text-rose-500">*</span></label>
+                        <input type="password" id="currPassword" required placeholder="••••••••" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Baru</label>
+                        <input type="password" id="newPassword" placeholder="•••••••• (kosongkan jika tidak diubah)" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="py-2.5 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Simpan Perubahan Akun</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- SECTION 4: MANAJEMEN ADMIN (MENU 4 - KHUSUS SUPER ADMIN)                  -->
+        <!-- ========================================================================= -->
+        {% if is_superadmin %}
+        <div id="sectionAdminUsers" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Header -->
+                <div class="p-6 bg-gradient-to-r from-purple-950 via-purple-900 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-extrabold text-lg text-white">Manajemen User Admin</h2>
+                                <span class="px-2.5 py-0.5 rounded-full bg-purple-400/20 text-purple-200 border border-purple-400/30 text-[10px] font-bold uppercase tracking-wider">
+                                    Super Admin Control
+                                </span>
+                            </div>
+                            <p class="text-xs text-purple-200/80">Kelola akun panitia/petugas absensi dan atur ulang password dari semua user admin</p>
+                        </div>
+                    </div>
+
+                    <button onclick="openAddAdminModal()" type="button" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span>+ Tambah Admin Baru</span>
+                    </button>
+                </div>
+
+                <!-- Table of Admins -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Nama Lengkap</th>
+                                <th class="py-3 px-4">Username</th>
+                                <th class="py-3 px-4">Role / Hak Akses</th>
+                                <th class="py-3 px-4">Dibuat Pada</th>
+                                <th class="py-3 px-4">Login Terakhir</th>
+                                <th class="py-3 px-4 text-center w-48">Aksi Manajemen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTableBody" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="7" class="text-center py-10 text-slate-400">
+                                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600"></i>
+                                    Memuat daftar admin...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Summary -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-4 h-4 text-purple-600 shrink-0"></i>
+                        <span>Super Admin memiliki hak akses penuh untuk mengatur/mereset password admin manapun.</span>
+                    </div>
+                    <div class="font-semibold text-slate-700">Total Akun: <span id="adminUsersCount">0</span> User</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 SeminarPass. Sistem Registrasi & Absensi QR Code Seminar Nasional.</p>
+            <p class="flex items-center gap-1">
+                <span>Status Console:</span>
+                <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Terhubung
+                </span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- MODAL: RESET PASSWORD ADMIN (SUPER ADMIN PRIVILEGE) -->
+    <div id="resetPassModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                        <i data-lucide="key" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-900">Atur Password Admin</h3>
+                </div>
+                <button onclick="closeResetPassModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="text-left space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                <div class="text-slate-500">Akun Target:</div>
+                <div class="font-bold text-slate-900" id="resetTargetNama">-</div>
+                <div class="font-mono text-purple-700 font-bold" id="resetTargetUsername">@-</div>
+            </div>
+
+            <form id="resetPassForm" class="space-y-4 text-left">
+                <input type="hidden" id="resetTargetId">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Baru</label>
+                    <input type="password" id="resetNewPass" required placeholder="Masukkan password baru"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeResetPassModal()" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow">
+                        Simpan Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TAMBAH / EDIT ADMIN -->
+    <div id="adminUserModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-base text-slate-900" id="adminUserModalTitle">Tambah Admin Baru</h3>
+                <button onclick="closeAdminUserModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="adminUserForm" class="space-y-4 text-left">
+                <input type="hidden" id="modalAdminId">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="modalAdminNama" required placeholder="Contoh: Petugas Meja 1"
+                        class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Username</label>
+                    <input type="text" id="modalAdminUsername" required placeholder="petugas5"
+                        class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div id="modalPassField">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Awal</label>
+                    <input type="password" id="modalAdminPassword" placeholder="••••••••"
+                        class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Role / Hak Akses</label>
+                    <select id="modalAdminRole" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
+                        <option value="admin">Petugas Admin (Scan & Kelola Data)</option>
+                        <option value="superadmin">Super Admin (Akses Penuh & Manajemen Akun)</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAdminUserModal()" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="saveAdminUserBtn" class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow">
+                        Simpan Admin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL VIEW QR CODE -->
+    <div id="qrModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-sm text-slate-800" id="qrModalTitle">QR Code Tiket</h3>
+                <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
+                <img id="qrModalImage" src="" alt="QR" class="w-48 h-48 object-contain mx-auto">
+                <div class="mt-2 font-mono text-lg font-bold tracking-widest text-slate-900" id="qrModalCode">-</div>
+            </div>
+
+            <p class="text-xs text-slate-600 font-semibold" id="qrModalName">-</p>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <a id="qrModalDownload" href="#" download="" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+                </a>
+                <a id="qrModalTicketLink" href="#" target="_blank" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> E-Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPORT CSV MODAL -->
+    <div id="importCsvModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white text-center relative">
+                <button onclick="closeImportModal()" class="absolute top-4 right-4 text-white/80 hover:text-white transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
+                    <i data-lucide="file-up" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <h3 class="text-xl font-extrabold">Impor Data Peserta dari CSV</h3>
+                <p class="text-xs text-blue-100 mt-1">Restore atau tambahkan data pendaftar & peserta sekaligus dari file CSV backup</p>
+            </div>
+
+            <form id="importCsvForm" class="p-6 space-y-5">
+                <!-- File Picker Area -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Pilih File Backup CSV (.csv)
+                    </label>
+                    <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-5 text-center bg-slate-50 hover:bg-blue-50/50 transition cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                        <span id="csvFileName" class="text-xs font-semibold text-slate-700 block">Klik untuk memilih file CSV</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5 block">Format UTF-8, hasil export sistem atau template standar</span>
+                        <input type="file" id="csvFileInput" name="file" accept=".csv" class="hidden" required onchange="handleCsvFileSelect(this)">
+                    </div>
+                </div>
+
+                <!-- Overwrite Checkbox -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                    <input type="checkbox" id="overwriteExisting" name="overwrite" value="true" checked
+                        class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
+                    <label for="overwriteExisting" class="text-xs text-slate-700 cursor-pointer">
+                        <strong class="font-semibold text-slate-900 block">Perbarui Data Jika Sudah Ada</strong>
+                        Jika NIM/NIP atau Kode QR sudah ada di database, perbarui datanya. (Hilangkan centang jika ingin melewati data duplikat).
+                    </label>
+                </div>
+
+                <!-- Instructions / Column reference -->
+                <div class="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-blue-950">
+                        <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+                        Format Kolom yang Didukung:
+                    </div>
+                    <p class="text-[11px] text-blue-800 leading-relaxed font-mono">
+                        No, Kode QR, NIM / NIP, Nama Lengkap, Institusi, Pekerjaan, Status, Waktu Pendaftaran, Waktu Hadir
+                    </p>
+                    <p class="text-[11px] text-blue-700">
+                        *File hasil fitur "Export Semua Data" dapat langsung diimpor ke sini tanpa perlu diubah.
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeImportModal()"
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSubmitImport"
+                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-600/30">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span id="btnSubmitImportText">Mulai Impor Data</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LAN Access QR Modal -->
+    <div id="lanModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="wifi" class="w-5 h-5 text-emerald-600"></i>
+                    <h3 class="font-bold text-sm text-slate-800">Akses Jaringan Wi-Fi / HP</h3>
+                </div>
+                <button onclick="closeLanModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600">
+                Scan QR Code ini menggunakan kamera HP untuk membuka form pendaftaran seminar di jaringan Wi-Fi lokal:
+            </p>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
+                <img id="lanQrImage" src="/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
+                <div class="mt-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 break-all" id="lanUrlText">
+                    Memuat URL...
+                </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400">
+                Pastikan HP / laptop peserta terhubung ke jaringan Wi-Fi yang sama.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // XSS Sanitizer Utility
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // State Variables
+        let currentMainMenu = 'scan'; // 'scan', 'info', 'settings', or 'admin_users'
+        let currentInfoSubTab = 'pendaftar'; // 'pendaftar' or 'peserta'
+        let html5QrScanner = null;
+        let isCameraRunning = false;
+        let audioCtx = null;
+
+        // Audio synthesizer for beep feedback
+        function playBeep(type = 'success') {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'warning') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch (e) {
+                console.log('Audio playback error', e);
+            }
+        }
+
+        // Switch Main Console Menu
+        function switchMainMenu(menu) {
+            currentMainMenu = menu;
+            const navScanBtn = document.getElementById('navScanBtn');
+            const navInfoBtn = document.getElementById('navInfoBtn');
+            const navSettingsBtn = document.getElementById('navSettingsBtn');
+            const navAdminUsersBtn = document.getElementById('navAdminUsersBtn');
+            
+            const sectionScan = document.getElementById('sectionScan');
+            const sectionInfo = document.getElementById('sectionInfo');
+            const sectionSettings = document.getElementById('sectionSettings');
+            const sectionAdminUsers = document.getElementById('sectionAdminUsers');
+
+            const activeClass = 'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-sm';
+            const inactiveClass = 'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900';
+
+            const activePurpleClass = 'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-purple-600 text-white shadow-sm';
+            const inactivePurpleClass = 'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200';
+
+            navScanBtn.className = (menu === 'scan') ? activeClass : inactiveClass;
+            navInfoBtn.className = (menu === 'info') ? activeClass : inactiveClass;
+            navSettingsBtn.className = (menu === 'settings') ? activeClass : inactiveClass;
+            if (navAdminUsersBtn) {
+                navAdminUsersBtn.className = (menu === 'admin_users') ? activePurpleClass : inactivePurpleClass;
+            }
+
+            sectionScan.classList.toggle('hidden', menu !== 'scan');
+            sectionInfo.classList.toggle('hidden', menu !== 'info');
+            sectionSettings.classList.toggle('hidden', menu !== 'settings');
+            if (sectionAdminUsers) {
+                sectionAdminUsers.classList.toggle('hidden', menu !== 'admin_users');
+            }
+
+            if (menu === 'info') {
+                loadParticipantsData();
+            } else if (menu === 'admin_users') {
+                loadAdminUsersData();
+            }
+            updateStats();
+            lucide.createIcons();
+        }
+
+        // Switch Sub-menu in Informasi Peserta: Pendaftar vs Peserta
+        function switchInfoSubTab(subTab) {
+            currentInfoSubTab = subTab;
+            const tabPendaftarBtn = document.getElementById('tabPendaftarBtn');
+            const tabPesertaBtn = document.getElementById('tabPesertaBtn');
+            const tableTitle = document.getElementById('tableTitle');
+            const tableSubtitle = document.getElementById('tableSubtitle');
+            const colWaktuHeader = document.getElementById('colWaktuHeader');
+            const exportCurrentBtn = document.getElementById('exportCurrentBtn');
+            const exportBtnLabel = document.getElementById('exportBtnLabel');
+
+            if (subTab === 'pendaftar') {
+                tabPendaftarBtn.className = 'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all bg-amber-50 text-amber-900 border border-amber-200 shadow-sm';
+                tabPesertaBtn.className = 'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all text-slate-700 hover:bg-slate-100';
+                
+                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-amber-500"></span> Daftar Pendaftar (Belum Hadir)`;
+                tableSubtitle.textContent = 'Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.';
+                colWaktuHeader.textContent = 'Waktu Daftar';
+                
+                exportCurrentBtn.href = '/api/export-csv?status=pendaftar';
+                exportBtnLabel.textContent = 'Export CSV Pendaftar';
+            } else {
+                tabPesertaBtn.className = 'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all bg-emerald-50 text-emerald-900 border border-emerald-200 shadow-sm';
+                tabPendaftarBtn.className = 'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all text-slate-700 hover:bg-slate-100';
+                
+                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-emerald-500"></span> Daftar Peserta (Sudah Hadir)`;
+                tableSubtitle.textContent = 'Menampilkan data orang yang telah hadir melalui pemindaian QR Code.';
+                colWaktuHeader.textContent = 'Waktu Hadir';
+                
+                exportCurrentBtn.href = '/api/export-csv?status=peserta';
+                exportBtnLabel.textContent = 'Export CSV Peserta';
+            }
+
+            loadParticipantsData();
+        }
+
+        // Camera Initialization
+        async function initCameraOptions() {
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                const select = document.getElementById('cameraSelect');
+                select.innerHTML = '';
+                if (devices && devices.length) {
+                    devices.forEach((cam, index) => {
+                        const opt = document.createElement('option');
+                        opt.value = cam.id;
+                        opt.text = cam.label || `Kamera ${index + 1}`;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = "";
+                    opt.text = "Kamera tidak ditemukan";
+                    select.appendChild(opt);
+                }
+            } catch (e) {
+                console.error('Camera devices error', e);
+            }
+        }
+
+        function toggleScanner() {
+            if (isCameraRunning) {
+                stopScanner();
+            } else {
+                startScanner();
+            }
+        }
+
+        async function startScanner() {
+            const select = document.getElementById('cameraSelect');
+            const cameraId = select.value;
+            const placeholder = document.getElementById('cameraPlaceholder');
+            const cameraBtnLabel = document.getElementById('cameraBtnLabel');
+            const toggleBtn = document.getElementById('toggleCameraBtn');
+
+            if (!html5QrScanner) {
+                html5QrScanner = new Html5Qrcode("reader");
+            }
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            try {
+                const cameraConfig = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" };
+                await html5QrScanner.start(
+                    cameraConfig,
+                    config,
+                    onQrCodeScanned,
+                    (err) => {}
+                );
+                isCameraRunning = true;
+                placeholder.classList.add('hidden');
+                cameraBtnLabel.textContent = 'Matikan Kamera';
+                toggleBtn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5';
+            } catch (err) {
+                console.error('Unable to start scanning', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kamera Gagal Dibuka',
+                    text: 'Pastikan Anda memberikan izin akses kamera pada peramban ini.',
+                    confirmButtonColor: '#16a34a'
+                });
+            }
+        }
+
+        async function stopScanner() {
+            if (html5QrScanner && isCameraRunning) {
+                await html5QrScanner.stop();
+                isCameraRunning = false;
+                document.getElementById('cameraPlaceholder').classList.remove('hidden');
+                document.getElementById('cameraBtnLabel').textContent = 'Nyalakan Kamera';
+                document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5';
+            }
+        }
+
+        let lastScanTime = 0;
+        let lastScanCode = '';
+
+        async function onQrCodeScanned(decodedText) {
+            const now = Date.now();
+            if (decodedText === lastScanCode && (now - lastScanTime) < 2000) return;
+            lastScanTime = now;
+            lastScanCode = decodedText;
+            await processAttendanceCode(decodedText);
+        }
+
+        async function processAttendanceCode(code) {
+            const cleanedCode = code.trim().toUpperCase();
+            if (!cleanedCode) return;
+
+            try {
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qr_code: cleanedCode })
+                });
+
+                const result = await response.json();
+                displayScanResult(result, cleanedCode);
+                updateStats();
+            } catch (error) {
+                console.error('Attendance processing error', error);
+                playBeep('error');
+            }
+        }
+
+        function submitManualCode() {
+            const input = document.getElementById('manualQrInput');
+            const val = input.value.trim();
+            if (!val) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode Kosong',
+                    text: 'Masukkan 10 karakter kode QR!',
+                    confirmButtonColor: '#16a34a'
+                });
+                return;
+            }
+            processAttendanceCode(val);
+            input.value = '';
+        }
+
+        async function handleQrFileUpload(input) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            const qrCodeScanner = html5QrScanner || new Html5Qrcode("reader");
+
+            try {
+                Swal.fire({
+                    title: 'Memindai Gambar...',
+                    text: 'Membaca kode QR dari gambar',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const decodedText = await qrCodeScanner.scanFile(file, true);
+                Swal.close();
+                await processAttendanceCode(decodedText);
+            } catch (err) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Membaca QR',
+                    text: 'QR Code tidak terdeteksi pada gambar. Pastikan foto jelas dan fokus.',
+                    confirmButtonColor: '#16a34a'
+                });
+            } finally {
+                input.value = '';
+            }
+        }
+
+        function displayScanResult(res, scannedCode) {
+            const emptyState = document.getElementById('scanEmptyState');
+            const resultCard = document.getElementById('scanResultCard');
+            const badge = document.getElementById('scanStatusBadge');
+
+            const resultBanner = document.getElementById('resultBanner');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultSubtitle = document.getElementById('resultSubtitle');
+
+            emptyState.classList.add('hidden');
+            resultCard.classList.remove('hidden');
+
+            if (res.code === 'SUCCESS') {
+                playBeep('success');
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800';
+                badge.textContent = 'Berhasil Hadir';
+
+                resultBanner.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center';
+                resultIcon.className = 'w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
+                resultIcon.innerHTML = `<i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>`;
+                resultTitle.className = 'text-base font-extrabold text-emerald-900';
+                resultTitle.textContent = 'BERHASIL ABSENSI!';
+                resultSubtitle.className = 'text-xs text-emerald-700 mt-0.5';
+                resultSubtitle.textContent = 'Status diubah menjadi Peserta (Hadir)';
+
+                const d = res.data;
+                document.getElementById('resQrCode').textContent = d.qr_code;
+                document.getElementById('resNama').textContent = d.nama_lengkap;
+                document.getElementById('resNim').textContent = d.nim_nip;
+                document.getElementById('resHp').textContent = d.no_hp || '-';
+                document.getElementById('resInstitusi').textContent = d.institusi;
+                document.getElementById('resPekerjaan').textContent = d.pekerjaan;
+                document.getElementById('resWaktu').textContent = d.attended_at;
+            } else if (res.code === 'ALREADY_ATTENDED') {
+                playBeep('warning');
+
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800';
+                badge.textContent = 'Sudah Hadir';
+
+                resultBanner.className = 'p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center';
+                resultIcon.className = 'w-12 h-12 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
+                resultIcon.innerHTML = `<i data-lucide="info" class="w-6 h-6 stroke-[3]"></i>`;
+                resultTitle.className = 'text-base font-extrabold text-amber-900';
+                resultTitle.textContent = 'SUDAH HADIR SEBELUMNYA';
+                resultSubtitle.className = 'text-xs text-amber-700 mt-0.5';
+                resultSubtitle.textContent = 'Peserta ini telah melakukan absensi';
+
+                const d = res.data;
+                document.getElementById('resQrCode').textContent = d.qr_code;
+                document.getElementById('resNama').textContent = d.nama_lengkap;
+                document.getElementById('resNim').textContent = d.nim_nip;
+                document.getElementById('resHp').textContent = d.no_hp || '-';
+                document.getElementById('resInstitusi').textContent = d.institusi;
+                document.getElementById('resPekerjaan').textContent = d.pekerjaan;
+                document.getElementById('resWaktu').textContent = d.attended_at || '-';
+            } else {
+                playBeep('error');
+
+                badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800';
+                badge.textContent = 'Tidak Ditemukan';
+
+                resultBanner.className = 'p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center';
+                resultIcon.className = 'w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
+                resultIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-6 h-6 stroke-[3]"></i>`;
+                resultTitle.className = 'text-base font-extrabold text-rose-900';
+                resultTitle.textContent = 'QR CODE TIDAK DITEMUKAN';
+                resultSubtitle.className = 'text-xs text-rose-700 mt-0.5';
+                resultSubtitle.textContent = res.message || 'Kode QR tidak terdaftar dalam sistem.';
+
+                document.getElementById('resQrCode').textContent = scannedCode;
+                document.getElementById('resNama').textContent = '-';
+                document.getElementById('resNim').textContent = '-';
+                document.getElementById('resHp').textContent = '-';
+                document.getElementById('resInstitusi').textContent = '-';
+                document.getElementById('resPekerjaan').textContent = '-';
+                document.getElementById('resWaktu').textContent = '-';
+            }
+            lucide.createIcons();
+        }
+
+        function resetScanCard() {
+            document.getElementById('scanEmptyState').classList.remove('hidden');
+            document.getElementById('scanResultCard').classList.add('hidden');
+            document.getElementById('scanStatusBadge').className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600';
+            document.getElementById('scanStatusBadge').textContent = 'Menunggu Scan';
+            lastScanCode = '';
+        }
+
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.stats;
+                    document.getElementById('statTotal').textContent = s.total;
+                    document.getElementById('statPendaftar').textContent = s.pendaftar;
+                    document.getElementById('statPeserta').textContent = s.peserta;
+                    document.getElementById('statRate').textContent = `${s.attendance_rate}%`;
+
+                    document.getElementById('badgeSubPendaftar').textContent = s.pendaftar;
+                    document.getElementById('badgeSubPeserta').textContent = s.peserta;
+                }
+            } catch (e) {
+                console.error('Error stats', e);
+            }
+        }
+
+        async function loadParticipantsData() {
+            const tableBody = document.getElementById('participantTableBody');
+            const search = document.getElementById('searchInput').value;
+            const job = document.getElementById('filterPekerjaan').value;
+
+            const params = new URLSearchParams({
+                status: currentInfoSubTab,
+                search: search,
+                pekerjaan: job
+            });
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-10 text-slate-400">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600"></i>
+                        Memuat data...
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(`/api/participants?${params.toString()}`);
+                const json = await res.json();
+
+                if (json.success && json.data.length > 0) {
+                    document.getElementById('tableCount').textContent = json.data.length;
+                    let html = '';
+                    json.data.forEach((p, idx) => {
+                        const timeDisplay = currentInfoSubTab === 'peserta' ? (p.attended_at || '-') : p.created_at;
+                        const toggleActionTitle = currentInfoSubTab === 'pendaftar' ? 'Tandai Sudah Hadir' : 'Kembalikan ke Pendaftar';
+                        const toggleActionIcon = currentInfoSubTab === 'pendaftar' ? 'check' : 'undo-2';
+                        const toggleActionClass = currentInfoSubTab === 'pendaftar' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700';
+
+                        const safeQr = escapeHtml(p.qr_code);
+                        const safeNama = escapeHtml(p.nama_lengkap);
+                        const safeNim = escapeHtml(p.nim_nip);
+                        const safeHp = escapeHtml(p.no_hp || '-');
+                        const rawHp = (p.no_hp || '').replace(/\D/g, '');
+                        const waNumber = rawHp.startsWith('0') ? '62' + rawHp.slice(1) : rawHp;
+                        const safeInstitusi = escapeHtml(p.institusi);
+                        const safePekerjaan = escapeHtml(p.pekerjaan);
+                        const safeTime = escapeHtml(timeDisplay);
+
+                        html += `
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="py-3 px-4 text-center text-slate-400 font-medium">${idx + 1}</td>
+                                <td class="py-3 px-4">
+                                    <button onclick="openQrModal('${safeQr}', '${encodeURIComponent(p.nama_lengkap)}')" class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition inline-flex items-center gap-1">
+                                        <i data-lucide="qr-code" class="w-3 h-3"></i>
+                                        <span>${safeQr}</span>
+                                    </button>
+                                </td>
+                                <td class="py-3 px-4 font-mono text-slate-800">${safeNim}</td>
+                                <td class="py-3 px-4 font-bold text-slate-900">${safeNama}</td>
+                                <td class="py-3 px-4">
+                                    ${p.no_hp ? `
+                                        <a href="https://wa.me/${waNumber}" target="_blank" title="Hubungi via WhatsApp (${safeHp})"
+                                            class="font-mono text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                                            <i data-lucide="phone" class="w-3 h-3 text-emerald-600"></i>
+                                            <span>${safeHp}</span>
+                                        </a>
+                                    ` : `<span class="text-slate-400 font-mono">-</span>`}
+                                </td>
+                                <td class="py-3 px-4 text-slate-600">${safeInstitusi}</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                        ${safePekerjaan}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-slate-500 text-[11px] whitespace-nowrap">${safeTime}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button onclick="toggleParticipantStatus(${p.id}, '${encodeURIComponent(p.nama_lengkap)}', '${p.status}')" title="${toggleActionTitle}"
+                                             class="p-1.5 rounded-lg ${toggleActionClass} transition">
+                                            <i data-lucide="${toggleActionIcon}" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                        <button onclick="deleteParticipant(${p.id}, '${encodeURIComponent(p.nama_lengkap)}')" title="Hapus Data"
+                                             class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition">
+                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tableBody.innerHTML = html;
+                } else {
+                    document.getElementById('tableCount').textContent = '0';
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center py-12 text-slate-400">
+                                <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                                <p class="font-medium text-slate-600">Tidak ada data ${currentInfoSubTab}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Belum ada data yang cocok dengan kriteria pencarian.</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function toggleParticipantStatus(id, encodedName, currentStatus) {
+            const name = decodeURIComponent(encodedName);
+            const nextStatus = currentStatus === 'pendaftar' ? 'Peserta (Hadir)' : 'Pendaftar (Belum Hadir)';
+
+            const confirm = await Swal.fire({
+                title: 'Ubah Status Kehadiran?',
+                text: `Ubah status ${name} menjadi ${nextStatus}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Ubah',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`/api/participant/${id}/toggle`, { method: 'POST' });
+                const json = await res.json();
+                if (json.success) {
+                    loadParticipantsData();
+                    updateStats();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function deleteParticipant(id, encodedName) {
+            const name = decodeURIComponent(encodedName);
+            const confirm = await Swal.fire({
+                title: 'Hapus Data?',
+                text: `Apakah Anda yakin ingin menghapus data ${name}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`/api/participant/${id}`, { method: 'DELETE' });
+                const json = await res.json();
+                if (json.success) {
+                    loadParticipantsData();
+                    updateStats();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // =========================================================================
+        // SUPER ADMIN MANAGEMENT LOGIC
+        // =========================================================================
+        async function loadAdminUsersData() {
+            const tbody = document.getElementById('adminUsersTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-10 text-slate-400">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600"></i>
+                        Memuat daftar admin...
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch('/api/admin/users');
+                const json = await res.json();
+
+                if (res.ok && json.success && json.data) {
+                    document.getElementById('adminUsersCount').textContent = json.data.length;
+                    let html = '';
+                    json.data.forEach((u, idx) => {
+                        const isSuper = u.role === 'superadmin';
+                        const roleBadge = isSuper
+                            ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">SUPER ADMIN</span>`
+                            : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PETUGAS ADMIN</span>`;
+
+                        const safeNama = escapeHtml(u.nama);
+                        const safeUsername = escapeHtml(u.username);
+                        const safeCreated = escapeHtml(u.created_at || '-');
+                        const safeLastLogin = escapeHtml(u.last_login || 'Belum Login');
+
+                        html += `
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="py-3 px-4 text-center text-slate-400 font-medium">${idx + 1}</td>
+                                <td class="py-3 px-4">
+                                    <div class="font-bold text-slate-900">${safeNama}</div>
+                                </td>
+                                <td class="py-3 px-4 font-mono font-semibold text-slate-700">@${safeUsername}</td>
+                                <td class="py-3 px-4">${roleBadge}</td>
+                                <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">${safeCreated}</td>
+                                <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">${safeLastLogin}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button onclick="openResetPassModal(${u.id}, '${encodeURIComponent(u.nama)}', '${encodeURIComponent(u.username)}')"
+                                            class="px-2.5 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold transition flex items-center gap-1 border border-purple-200" title="Atur / Reset Password">
+                                            <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                                            <span>Atur Password</span>
+                                        </button>
+                                        <button onclick="openEditAdminModal(${u.id}, '${encodeURIComponent(u.nama)}', '${encodeURIComponent(u.username)}', '${encodeURIComponent(u.role)}')"
+                                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Edit Profil">
+                                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                        <button onclick="deleteAdminUser(${u.id}, '${encodeURIComponent(u.nama)}')"
+                                            class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus Admin">
+                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                }
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Reset Password Modal Functions
+        function openResetPassModal(id, encodedNama, username) {
+            const nama = decodeURIComponent(encodedNama);
+            document.getElementById('resetTargetId').value = id;
+            document.getElementById('resetTargetNama').textContent = nama;
+            document.getElementById('resetTargetUsername').textContent = `@${username}`;
+            document.getElementById('resetNewPass').value = '';
+            document.getElementById('resetPassModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeResetPassModal() {
+            document.getElementById('resetPassModal').classList.add('hidden');
+        }
+
+        const resetPassForm = document.getElementById('resetPassForm');
+        if (resetPassForm) {
+            resetPassForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const adminId = document.getElementById('resetTargetId').value;
+                const newPass = document.getElementById('resetNewPass').value.trim();
+
+                try {
+                    const res = await fetch(`/api/admin/users/${adminId}/reset-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ new_password: newPass })
+                    });
+                    const json = await res.json();
+
+                    if (res.ok && json.success) {
+                        closeResetPassModal();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Password Diperbarui!',
+                            text: json.message,
+                            confirmButtonColor: '#9333ea'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: json.message || 'Gagal mengubah password.',
+                            confirmButtonColor: '#9333ea'
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+
+        // Add / Edit Admin Modal Functions
+        function openAddAdminModal() {
+            document.getElementById('adminUserModalTitle').textContent = 'Tambah Admin Baru';
+            document.getElementById('modalAdminId').value = '';
+            document.getElementById('modalAdminNama').value = '';
+            document.getElementById('modalAdminUsername').value = '';
+            document.getElementById('modalAdminPassword').value = '';
+            document.getElementById('modalPassField').classList.remove('hidden');
+            document.getElementById('modalAdminRole').value = 'admin';
+            document.getElementById('adminUserModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openEditAdminModal(id, encodedNama, username, role) {
+            document.getElementById('adminUserModalTitle').textContent = 'Edit Data Admin';
+            document.getElementById('modalAdminId').value = id;
+            document.getElementById('modalAdminNama').value = decodeURIComponent(encodedNama);
+            document.getElementById('modalAdminUsername').value = username;
+            document.getElementById('modalPassField').classList.add('hidden');
+            document.getElementById('modalAdminRole').value = role;
+            document.getElementById('adminUserModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeAdminUserModal() {
+            document.getElementById('adminUserModal').classList.add('hidden');
+        }
+
+        const adminUserForm = document.getElementById('adminUserForm');
+        if (adminUserForm) {
+            adminUserForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('modalAdminId').value;
+                const nama = document.getElementById('modalAdminNama').value.trim();
+                const username = document.getElementById('modalAdminUsername').value.trim();
+                const role = document.getElementById('modalAdminRole').value;
+                const password = document.getElementById('modalAdminPassword').value.trim();
+
+                try {
+                    let url = '/api/admin/users';
+                    let payload = { nama, username, role };
+
+                    if (id) {
+                        url = `/api/admin/users/${id}/edit`;
+                    } else {
+                        if (!password) {
+                            Swal.fire({ icon: 'warning', title: 'Password Wajib', text: 'Masukkan password awal!', confirmButtonColor: '#9333ea' });
+                            return;
+                        }
+                        payload.password = password;
+                    }
+
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const json = await res.json();
+
+                    if (res.ok && json.success) {
+                        closeAdminUserModal();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: json.message,
+                            confirmButtonColor: '#9333ea'
+                        });
+                        loadAdminUsersData();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: json.message || 'Terjadi kesalahan.',
+                            confirmButtonColor: '#9333ea'
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+
+        async function deleteAdminUser(id, encodedNama) {
+            const nama = decodeURIComponent(encodedNama);
+            const confirm = await Swal.fire({
+                title: 'Hapus User Admin?',
+                text: `Apakah Anda yakin ingin menghapus akun ${nama}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                const json = await res.json();
+                if (res.ok && json.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Dihapus',
+                        text: json.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadAdminUsersData();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menghapus',
+                        text: json.message || 'Gagal menghapus admin.',
+                        confirmButtonColor: '#9333ea'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // =========================================================================
+        // SETTINGS & PROFILE FORM
+        // =========================================================================
+        const inputEventName = document.getElementById('inputEventName');
+        const previewEventName = document.getElementById('previewEventName');
+        const settingsForm = document.getElementById('settingsForm');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const saveSettingsBtnText = document.getElementById('saveSettingsBtnText');
+
+        if (inputEventName && previewEventName) {
+            inputEventName.addEventListener('input', () => {
+                previewEventName.textContent = inputEventName.value.trim() || 'Nama Acara Seminar';
+            });
+        }
+
+        function handleLogoPreview(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                document.getElementById('logoFileName').textContent = `File dipilih: ${file.name}`;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('previewLogoImg');
+                    const defaultIcon = document.getElementById('previewDefaultIcon');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    defaultIcon.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function resetToDefaultLogo() {
+            const confirm = await Swal.fire({
+                title: 'Reset Logo Acara?',
+                text: 'Logo acara akan dikembalikan ke icon default sistem.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch('/api/settings/reset-logo', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('inputEventLogo').value = '';
+                    document.getElementById('logoFileName').textContent = 'Logo default aktif';
+                    const img = document.getElementById('previewLogoImg');
+                    const defaultIcon = document.getElementById('previewDefaultIcon');
+                    img.src = '';
+                    img.classList.add('hidden');
+                    defaultIcon.classList.remove('hidden');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Logo Direset',
+                        text: 'Logo berhasil dikembalikan ke default.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(settingsForm);
+
+                saveSettingsBtn.disabled = true;
+                saveSettingsBtnText.textContent = 'Menyimpan...';
+
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pengaturan Disimpan!',
+                            text: 'Nama acara dan logo resmi telah diperbarui untuk seluruh sistem.',
+                            confirmButtonColor: '#16a34a'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Menyimpan',
+                            text: data.message || 'Terjadi kesalahan.',
+                            confirmButtonColor: '#16a34a'
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    saveSettingsBtn.disabled = false;
+                    saveSettingsBtnText.textContent = 'Simpan Perubahan Acara';
+                }
+            });
+        }
+
+        // Change Current User Credentials
+        const changePassForm = document.getElementById('changePassForm');
+        if (changePassForm) {
+            changePassForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const myNama = document.getElementById('myNama').value.trim();
+                const currentPassword = document.getElementById('currPassword').value.trim();
+                const newPassword = document.getElementById('newPassword').value.trim();
+
+                try {
+                    const res = await fetch('/api/admin/change-credentials', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            nama: myNama,
+                            current_password: currentPassword,
+                            new_password: newPassword
+                        })
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Informasi profil / password akun Anda berhasil diperbarui.',
+                            confirmButtonColor: '#16a34a'
+                        });
+                        document.getElementById('currPassword').value = '';
+                        document.getElementById('newPassword').value = '';
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message || 'Password saat ini salah.',
+                            confirmButtonColor: '#16a34a'
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+
+        function openQrModal(qrCode, encodedName) {
+            const name = decodeURIComponent(encodedName);
+            document.getElementById('qrModalCode').textContent = qrCode;
+            document.getElementById('qrModalName').textContent = name;
+            
+            const qrUrl = `/api/qr/${qrCode}.png`;
+            document.getElementById('qrModalImage').src = qrUrl;
+            
+            const downloadBtn = document.getElementById('qrModalDownload');
+            downloadBtn.href = qrUrl;
+            downloadBtn.download = `QR_${qrCode}_${name.replace(/\s+/g, '_')}.png`;
+
+            document.getElementById('qrModalTicketLink').href = `/ticket/${qrCode}`;
+
+            document.getElementById('qrModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        async function openLanModal() {
+            try {
+                const res = await fetch('/api/network-info');
+                const data = await res.json();
+                document.getElementById('lanUrlText').textContent = data.register_url_lan;
+                document.getElementById('lanQrImage').src = `/api/qr-url.png?data=${encodeURIComponent(data.register_url_lan)}`;
+                document.getElementById('lanModal').classList.remove('hidden');
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closeLanModal() {
+            document.getElementById('lanModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // CSV IMPORT FUNCTIONS
+        // ==========================================
+        function openImportModal() {
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('csvFileName').textContent = 'Klik untuk memilih file CSV';
+            document.getElementById('importCsvModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeImportModal() {
+            document.getElementById('importCsvModal').classList.add('hidden');
+        }
+
+        function handleCsvFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                document.getElementById('csvFileName').textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            }
+        }
+
+        const importCsvForm = document.getElementById('importCsvForm');
+        if (importCsvForm) {
+            importCsvForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('csvFileInput');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'File Belum Dipilih',
+                        text: 'Silakan pilih file CSV terlebih dahulu.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('overwrite', document.getElementById('overwriteExisting').checked ? 'true' : 'false');
+
+                const btn = document.getElementById('btnSubmitImport');
+                const btnText = document.getElementById('btnSubmitImportText');
+                btn.disabled = true;
+                btnText.textContent = 'Mengimpor Data...';
+
+                try {
+                    const res = await fetch('/api/import-csv', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        closeImportModal();
+                        const s = data.summary;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Impor Selesai!',
+                            html: `
+                                <div class="text-left text-xs sm:text-sm space-y-2 mt-2">
+                                    <p class="font-medium text-slate-700">${escapeHtml(data.message)}</p>
+                                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 font-mono text-xs">
+                                        <div class="flex justify-between"><span>Total Diproses:</span> <strong>${s.total}</strong></div>
+                                        <div class="flex justify-between text-emerald-700"><span>Data Baru Ditambahkan:</span> <strong>+${s.inserted}</strong></div>
+                                        <div class="flex justify-between text-blue-700"><span>Data Diperbarui:</span> <strong>${s.updated}</strong></div>
+                                        <div class="flex justify-between text-slate-500"><span>Data Dilewati:</span> <strong>${s.skipped}</strong></div>
+                                        ${s.errors > 0 ? `<div class="flex justify-between text-rose-600"><span>Baris Error:</span> <strong>${s.errors}</strong></div>` : ''}
+                                    </div>
+                                </div>
+                            `,
+                            confirmButtonColor: '#16a34a'
+                        });
+                        loadParticipantsData();
+                        updateStats();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Mengimpor CSV',
+                            text: data.message || 'Terjadi kesalahan saat memproses file CSV.',
+                            confirmButtonColor: '#e11d48'
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error importing CSV:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Koneksi Gagal',
+                        text: 'Tidak dapat mengirim file ke server.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                } finally {
+                    btn.disabled = false;
+                    btnText.textContent = 'Mulai Impor Data';
+                }
+            });
+        }
+
+        async function handleLogout() {
+            const confirm = await Swal.fire({
+                title: 'Logout Console?',
+                text: 'Anda akan keluar dari sesi admin.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Logout',
+                cancelButtonText: 'Batal'
+            });
+
+            if (confirm.isConfirmed) {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/console';
+            }
+        }
+
+        // Debounce search input
+        let searchDebounce = null;
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => {
+                loadParticipantsData();
+            }, 300);
+        });
+
+        document.getElementById('filterPekerjaan').addEventListener('change', () => {
+            loadParticipantsData();
+        });
+
+        // Page Load Init
+        window.addEventListener('DOMContentLoaded', () => {
+            initCameraOptions();
+            updateStats();
+            loadParticipantsData();
+            {% if is_superadmin %}
+            loadAdminUsersData();
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

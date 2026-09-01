@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Pendaftaran Seminar - SeminarPass{% endblock %}
+
+{% block content %}
+<div class="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
+            Registrasi Peserta Seminar
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Formulir Pendaftaran Seminar</h1>
+        <p class="mt-2 text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
+            Silakan lengkapi data diri Anda. Setelah mendaftar, sistem akan membuat <strong>QR Code 10 Karakter Unik</strong> sebagai tiket absensi kehadiran seminar.
+        </p>
+    </div>
+
+    <!-- Registration Card -->
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-6 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                    <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg">Informasi Biodata Pendaftar</h2>
+                    <p class="text-xs text-emerald-100">Pastikan data yang dimasukkan sudah benar dan valid</p>
+                </div>
+            </div>
+            <span class="hidden sm:inline-flex px-2.5 py-1 rounded-lg bg-white/20 text-xs font-medium backdrop-blur">
+                Langkah 1 dari 1
+            </span>
+        </div>
+
+        <form id="registrationForm" class="p-6 sm:p-8 space-y-6">
+            <!-- Row 1: NIM/NIP & Pekerjaan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="nim_nip" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="id-card" class="w-4 h-4 text-emerald-600"></i>
+                        NIM / NIP <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="nim_nip" name="nim_nip" required
+                        placeholder="Contoh: 2110511001 atau 19850101..."
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                    <p class="text-xs text-slate-500 mt-1">Nomor Induk Mahasiswa atau Pegawai</p>
+                </div>
+
+                <div>
+                    <label for="pekerjaan" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-emerald-600"></i>
+                        Pekerjaan / Profesi <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select id="pekerjaan" name="pekerjaan" required
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm appearance-none bg-white">
+                            <option value="" disabled selected>-- Pilih Pekerjaan --</option>
+                            <option value="Mahasiswa">Mahasiswa</option>
+                            <option value="Dosen">Dosen</option>
+                            <option value="Praktisi">Praktisi</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Pilih kategori profesi Anda saat ini</p>
+                </div>
+            </div>
+
+            <!-- Row 2: Nama Lengkap & No HP / WA -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="nama_lengkap" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
+                        Nama Lengkap <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="nama_lengkap" name="nama_lengkap" required
+                        placeholder="Contoh: Dr. Budi Santoso, S.Kom., M.Cs."
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                    <p class="text-xs text-slate-500 mt-1">Nama lengkap beserta gelar untuk sertifikat</p>
+                </div>
+
+                <div>
+                    <label for="no_hp" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="phone" class="w-4 h-4 text-emerald-600"></i>
+                        No. HP / WhatsApp <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="tel" id="no_hp" name="no_hp" required
+                        placeholder="Contoh: 081234567890"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                    <p class="text-xs text-slate-500 mt-1">Nomor aktif untuk info & konfirmasi seminar</p>
+                </div>
+            </div>
+
+            <!-- Row 3: Institusi -->
+            <div>
+                <label for="institusi" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="building" class="w-4 h-4 text-emerald-600"></i>
+                    Institusi / Universitas / Perusahaan <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="institusi" name="institusi" required
+                    placeholder="Contoh: Universitas Indonesia / PT Teknologi Nusantara"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+            </div>
+
+            <!-- Information Alert -->
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-semibold text-amber-950">Penting untuk Diketahui:</p>
+                    <p class="mt-0.5 text-amber-800">
+                        Setelah menekan tombol daftar, status Anda terdaftar sebagai <strong>Pendaftar</strong>. Anda akan mendapatkan <strong>QR Code Absensi</strong> yang harus ditunjukkan kepada panitia di lokasi seminar untuk di-scan menjadi <strong>Peserta Hadir</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Honeypot Anti-Bot Field (Hidden from humans) -->
+            <div style="display:none; opacity:0; position:absolute; left:-9999px;" aria-hidden="true">
+                <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
+                <input type="text" id="hp_secondary" name="hp_secondary" tabindex="-1" autocomplete="off">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit" id="submitBtn"
+                    class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-base shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span id="btnText">Daftar Seminar & Buat QR Code</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SUCCESS MODAL POPUP (TIKET QR CODE) -->
+<div id="successModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white text-center relative">
+            <button onclick="closeModalAndReset()" class="absolute top-4 right-4 text-white/80 hover:text-white transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
+                <i data-lucide="check-check" class="w-6 h-6 stroke-[3]"></i>
+            </div>
+            <h3 class="text-xl font-extrabold">Pendaftaran Berhasil!</h3>
+            <p class="text-xs text-emerald-100 mt-1">Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.</p>
+        </div>
+
+        <!-- Modal Body: QR Code & Warning Banner -->
+        <div class="p-6 text-center space-y-4">
+            <!-- IMPORTANT WARNING BANNER FOR PARTICIPANTS -->
+            <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left flex items-start gap-3 shadow-sm">
+                <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs sm:text-sm font-extrabold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                        <span>📸 HIMBAUAN PENTING PESERTA:</span>
+                    </h4>
+                    <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+                        Mohon <strong>simpan QR Code ini sekarang</strong> dengan mengambil <strong>tangkapan layar (screenshot)</strong> atau menekan tombol <strong>Download QR</strong> di bawah, karena QR Code ini wajib ditunjukkan saat registrasi kehadiran di lokasi seminar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- QR Code Display Box -->
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 inline-block shadow-inner">
+                <img id="modalQrImage" src="" alt="QR Code Tiket" class="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                <div class="mt-3">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Kode Tiket Anda:</span>
+                    <span id="modalQrCode" class="font-mono text-xl sm:text-2xl font-black text-emerald-800 tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 inline-block mt-1">
+                        ----------
+                    </span>
+                </div>
+            </div>
+
+            <!-- Participant Info Summary -->
+            <div class="bg-slate-50 rounded-2xl p-4 text-xs text-left space-y-2 border border-slate-200">
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
+                    <span class="text-slate-500">Nama:</span>
+                    <span id="modalNama" class="font-bold text-slate-900 text-right">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
+                    <span class="text-slate-500">NIM / NIP:</span>
+                    <span id="modalNim" class="font-bold font-mono text-slate-900">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
+                    <span class="text-slate-500">No. HP / WA:</span>
+                    <span id="modalHp" class="font-bold font-mono text-emerald-700">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
+                    <span class="text-slate-500">Institusi:</span>
+                    <span id="modalInstitusi" class="font-bold text-slate-900 text-right">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Pekerjaan:</span>
+                    <span id="modalPekerjaan" class="font-semibold text-emerald-700">-</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons: Download QR, Open Ticket, Finish -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <a id="btnDownloadQr" href="#" download=""
+                    class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
+                    <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Download QR (Simpan)</span>
+                </a>
+                <a id="btnOpenTicket" href="#" target="_blank"
+                    class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <span>Buka E-Ticket Digital</span>
+                </a>
+            </div>
+
+            <button onclick="closeModalAndReset()" class="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold transition">
+                Selesai & Tutup Jendela
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('registrationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const successModal = document.getElementById('successModal');
+    let currentQr = '';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const payload = {
+            nim_nip: document.getElementById('nim_nip').value.trim(),
+            nama_lengkap: document.getElementById('nama_lengkap').value.trim(),
+            no_hp: document.getElementById('no_hp').value.trim(),
+            institusi: document.getElementById('institusi').value.trim(),
+            pekerjaan: document.getElementById('pekerjaan').value,
+            website_url: document.getElementById('website_url')?.value || '',
+            hp_secondary: document.getElementById('hp_secondary')?.value || ''
+        };
+
+        if (!payload.nim_nip || !payload.nama_lengkap || !payload.no_hp || !payload.institusi || !payload.pekerjaan) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap',
+                text: 'Harap isi semua kolom formulir pendaftaran!',
+                confirmButtonColor: '#16a34a'
+            });
+            return;
+        }
+
+        // Loading state
+        submitBtn.disabled = true;
+        btnText.textContent = 'Memproses Pendaftaran...';
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const res = await response.json();
+
+            if (response.ok && res.success) {
+                const p = res.data;
+                currentQr = p.qr_code;
+
+                // Populate Modal
+                document.getElementById('modalQrCode').textContent = p.qr_code;
+                document.getElementById('modalNama').textContent = p.nama_lengkap;
+                document.getElementById('modalNim').textContent = p.nim_nip;
+                document.getElementById('modalHp').textContent = p.no_hp || '-';
+                document.getElementById('modalInstitusi').textContent = p.institusi;
+                document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
+                document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
+                
+                const qrUrl = `/api/qr/${p.qr_code}.png`;
+                document.getElementById('modalQrImage').src = qrUrl;
+                
+                const downloadBtn = document.getElementById('btnDownloadQr');
+                downloadBtn.href = qrUrl;
+                downloadBtn.download = `Tiket_QR_${p.qr_code}_${p.nama_lengkap.replace(/\s+/g, '_')}.png`;
+
+                const ticketBtn = document.getElementById('btnOpenTicket');
+                ticketBtn.href = `/ticket/${p.qr_code}`;
+
+                // Show modal & confetti
+                successModal.classList.remove('hidden');
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                lucide.createIcons();
+            } else if (res.code === 'DUPLICATE_NIM' && res.data) {
+                // Friendly modal if already registered
+                Swal.fire({
+                    icon: 'info',
+                    title: 'NIM/NIP Sudah Terdaftar',
+                    text: res.message,
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: 'Buka Tiket QR Saya',
+                    cancelButtonText: 'Tutup'
+                }).then((choice) => {
+                    if (choice.isConfirmed) {
+                        window.open(`/ticket/${res.data.qr_code}`, '_blank');
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mendaftar',
+                    text: res.message || 'Terjadi kesalahan pada server.',
+                    confirmButtonColor: '#16a34a'
+                });
+            }
+        } catch (error) {
+            console.error('Error registering:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Koneksi Bermasalah',
+                text: 'Tidak dapat menghubungi server. Pastikan server aktif.',
+                confirmButtonColor: '#16a34a'
+            });
+        } finally {
+            submitBtn.disabled = false;
+            btnText.textContent = 'Daftar Seminar & Buat QR Code';
+        }
+    });
+
+    function closeModalAndReset() {
+        successModal.classList.add('hidden');
+        form.reset();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

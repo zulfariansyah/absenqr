@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}E-Ticket Seminar - {{ participant.nama_lengkap if participant else 'Tiket Tidak Ditemukan' }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    @media print {
+        header, footer, .no-print {
+            display: none !important;
+        }
+        body {
+            background-color: white !important;
+        }
+        .print-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-10 px-4 sm:px-6 lg:px-8 max-w-xl mx-auto">
+    {% if error %}
+        <div class="bg-white rounded-2xl shadow-lg border border-rose-200 p-8 text-center">
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900">Tiket Tidak Ditemukan</h2>
+            <p class="mt-2 text-slate-600 text-sm">{{ error }}</p>
+            <a href="/" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Form Pendaftaran
+            </a>
+        </div>
+    {% else %}
+        <!-- Ticket Card -->
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden print-card">
+            <!-- Ticket Header -->
+            <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-6 text-white text-center relative">
+                {% if event_settings.event_logo %}
+                    <img src="{{ event_settings.event_logo }}" alt="Logo" class="w-14 h-14 rounded-2xl mx-auto mb-2 object-contain bg-white p-1.5 shadow-md">
+                {% else %}
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold uppercase tracking-wider mb-2">
+                        <i data-lucide="ticket" class="w-3.5 h-3.5"></i>
+                        E-Ticket Absensi Seminar
+                    </div>
+                {% endif %}
+                <h1 class="text-xl sm:text-2xl font-black tracking-tight uppercase">{{ event_settings.event_name }}</h1>
+                <p class="text-xs text-slate-300 mt-1">Tunjukkan QR Code ini pada saat registrasi kehadiran di lokasi seminar</p>
+            </div>
+
+            <!-- Perforation line -->
+            <div class="relative flex items-center justify-between px-2 bg-slate-100 py-1 border-y border-dashed border-slate-300">
+                <div class="w-5 h-5 rounded-full bg-[#f8fafc] -ml-5 border-r border-slate-300"></div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-semibold">PASSCODE: {{ participant.qr_code }}</div>
+                <div class="w-5 h-5 rounded-full bg-[#f8fafc] -mr-5 border-l border-slate-300"></div>
+            </div>
+
+            <!-- Ticket Body -->
+            <div class="p-6 sm:p-8 space-y-6 text-center">
+                <!-- QR Code Box -->
+                <div class="inline-block bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
+                    <img src="/api/qr/{{ participant.qr_code }}.png" alt="QR Code {{ participant.qr_code }}" class="w-52 h-52 object-contain mx-auto">
+                    <div class="mt-3">
+                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Kode Absensi</div>
+                        <div class="font-mono text-2xl font-extrabold text-slate-900 tracking-widest">{{ participant.qr_code }}</div>
+                    </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div>
+                    {% if participant.status == 'peserta' %}
+                        <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold uppercase tracking-wider">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                            STATUS: PESERTA (SUDAH HADIR)
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Waktu Hadir: {{ participant.attended_at }}</p>
+                    {% else %}
+                        <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold uppercase tracking-wider">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+                            STATUS: PENDAFTAR (BELUM SCAN ABSENSI)
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Participant Details List -->
+                <div class="bg-slate-50 rounded-2xl p-4 text-left text-sm divide-y divide-slate-200 border border-slate-200">
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">Nama Lengkap</span>
+                        <span class="font-bold text-slate-900 text-right">{{ participant.nama_lengkap }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">NIM / NIP</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ participant.nim_nip }}</span>
+                    </div>
+                    {% if participant.no_hp %}
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">No. HP / WA</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ participant.no_hp }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">Institusi</span>
+                        <span class="font-bold text-slate-900 text-right">{{ participant.institusi }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">Pekerjaan</span>
+                        <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ participant.pekerjaan }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">Waktu Daftar</span>
+                        <span class="text-slate-600 text-xs">{{ participant.created_at }}</span>
+                    </div>
+                </div>
+
+                <!-- Action buttons (No print) -->
+                <div class="grid grid-cols-2 gap-3 no-print pt-2">
+                    <a href="/api/qr/{{ participant.qr_code }}.png" download="QR_{{ participant.qr_code }}_{{ participant.nama_lengkap }}.png"
+                        class="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download QR
+                    </a>
+                    <button onclick="window.print()"
+                        class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak Tiket
+                    </button>
+                </div>
+
+                <div class="no-print pt-2">
+                    <a href="/" class="text-xs text-slate-500 hover:text-emerald-600 transition inline-flex items-center gap-1">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Formulir Pendaftaran Baru
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
