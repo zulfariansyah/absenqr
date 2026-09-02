@@ -69,6 +69,19 @@
             background: #94a3b8;
         }
     </style>
+    <script>
+        (function() {
+            const p = window.location.pathname;
+            if (p.startsWith('/absenpeserta')) {
+                window.BASE_URL = '/absenpeserta';
+            } else {
+                window.BASE_URL = "{{ request.script_root }}";
+                if (!window.BASE_URL || window.BASE_URL === 'undefined') {
+                    window.BASE_URL = '';
+                }
+            }
+        })();
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col justify-between antialiased">
@@ -76,7 +89,7 @@
     <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <a href="/" class="flex items-center gap-3 group max-w-md truncate">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3 group max-w-md truncate">
                     {% if event_settings.event_logo %}
                         <img src="{{ event_settings.event_logo }}" alt="Logo Acara" class="w-10 h-10 rounded-xl object-contain bg-white p-1 border border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
                     {% else %}
@@ -95,7 +108,7 @@
                         <i data-lucide="wifi" class="w-4 h-4 text-emerald-600"></i>
                         <span class="hidden md:inline">Akses Jaringan HP/Wi-Fi</span>
                     </button>
-                    <a href="/" class="px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors bg-emerald-600 text-white shadow-md shadow-emerald-600/20 flex items-center gap-2">
+                    <a href="{{ url_for('index') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors bg-emerald-600 text-white shadow-md shadow-emerald-600/20 flex items-center gap-2">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
                         <span>Pendaftaran</span>
                     </a>
@@ -122,7 +135,7 @@
             </p>
 
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
-                <img id="lanQrImage" src="/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
+                <img id="lanQrImage" src="{{ request.script_root }}/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
                 <div class="mt-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 break-all" id="lanUrlText">
                     Memuat URL...
                 </div>
@@ -158,10 +171,10 @@
 
         async function openLanModal() {
             try {
-                const res = await fetch('/api/network-info');
+                const res = await fetch(`${window.BASE_URL}/api/network-info`);
                 const data = await res.json();
                 document.getElementById('lanUrlText').textContent = data.register_url_lan;
-                document.getElementById('lanQrImage').src = `/api/qr-url.png?data=${encodeURIComponent(data.register_url_lan)}`;
+                document.getElementById('lanQrImage').src = `${window.BASE_URL}/api/qr-url.png?data=${encodeURIComponent(data.register_url_lan)}`;
                 document.getElementById('lanModal').classList.remove('hidden');
                 lucide.createIcons();
             } catch (e) {

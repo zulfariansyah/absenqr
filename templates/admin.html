@@ -41,10 +41,17 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        window.BASE_URL = "{{ request.script_root }}";
-        if (!window.BASE_URL || window.BASE_URL === "undefined") {
-            window.BASE_URL = "";
-        }
+        (function() {
+            const p = window.location.pathname;
+            if (p.startsWith('/absenpeserta')) {
+                window.BASE_URL = '/absenpeserta';
+            } else {
+                window.BASE_URL = "{{ request.script_root }}";
+                if (!window.BASE_URL || window.BASE_URL === 'undefined') {
+                    window.BASE_URL = '';
+                }
+            }
+        })();
     </script>
 
     <style>
