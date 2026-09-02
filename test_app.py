@@ -422,6 +422,64 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertEqual(net_data['prefix'], '/absen')
         self.assertIn('/absen', net_data['register_url_lan'])
 
+    def test_13_edit_and_bulk_delete_participants(self):
+        """Uji fitur Edit Data Peserta dan Hapus Banyak Data (Bulk Delete)"""
+        self.login_admin()
+
+        # 1. Daftarkan 3 peserta dummy
+        p1 = self.app.post('/api/register', json={
+            'nim_nip': 'EDIT001',
+            'nama_lengkap': 'Peserta Awal',
+            'no_hp': '08111111111',
+            'institusi': 'UNMUL',
+            'pekerjaan': 'Mahasiswa'
+        })
+        p1_id = json.loads(p1.data)['data']['id']
+
+        p2 = self.app.post('/api/register', json={
+            'nim_nip': 'EDIT002',
+            'nama_lengkap': 'Peserta Dua',
+            'no_hp': '08222222222',
+            'institusi': 'ITB',
+            'pekerjaan': 'Dosen'
+        })
+        p2_id = json.loads(p2.data)['data']['id']
+
+        # 2. Ambil data single peserta
+        get_res = self.app.get(f'/api/participant/{p1_id}')
+        self.assertEqual(get_res.status_code, 200)
+        self.assertEqual(json.loads(get_res.data)['data']['nama_lengkap'], 'Peserta Awal')
+
+        # 3. Edit data peserta 1
+        edit_res = self.app.post(f'/api/participant/{p1_id}/edit', json={
+            'nim_nip': 'EDIT001_UPDATED',
+            'nama_lengkap': 'Peserta Awal Diedit',
+            'no_hp': '08999999999',
+            'institusi': 'Universitas Indonesia',
+            'pekerjaan': 'Praktisi',
+            'status': 'peserta'
+        })
+        self.assertEqual(edit_res.status_code, 200)
+        edit_data = json.loads(edit_res.data)
+        self.assertTrue(edit_data['success'])
+        self.assertEqual(edit_data['data']['nama_lengkap'], 'Peserta Awal Diedit')
+        self.assertEqual(edit_data['data']['nim_nip'], 'EDIT001_UPDATED')
+        self.assertEqual(edit_data['data']['status'], 'peserta')
+        self.assertIsNotNone(edit_data['data']['attended_at'])
+
+        # 4. Uji Bulk Delete (Hapus p1_id dan p2_id bersamaan)
+        bulk_res = self.app.post('/api/participants/bulk-delete', json={
+            'ids': [p1_id, p2_id]
+        })
+        self.assertEqual(bulk_res.status_code, 200)
+        bulk_data = json.loads(bulk_res.data)
+        self.assertTrue(bulk_data['success'])
+        self.assertEqual(bulk_data['deleted_count'], 2)
+
+        # 5. Verifikasi bahwa data sudah terhapus
+        get_after = self.app.get(f'/api/participant/{p1_id}')
+        self.assertEqual(get_after.status_code, 404)
+
 if __name__ == '__main__':
     unittest.main()
 

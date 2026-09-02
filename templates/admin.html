@@ -473,12 +473,34 @@
                         </div>
                     </div>
 
+                    <!-- Bulk Action Bar -->
+                    <div id="bulkActionBar" class="hidden flex flex-wrap items-center justify-between gap-3 bg-emerald-50/90 border border-emerald-200 px-4 py-2.5 rounded-2xl mb-3 shadow-sm transition">
+                        <div class="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                            <i data-lucide="check-square" class="w-4 h-4 text-emerald-600"></i>
+                            <span id="selectedCountText">0 data terpilih</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="clearSelectedRows()" type="button"
+                                class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl transition hover:bg-slate-50">
+                                Batal Pilih
+                            </button>
+                            <button onclick="bulkDeleteSelected()" type="button"
+                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition flex items-center gap-1.5 shadow-sm shadow-rose-600/30">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Terpilih
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Table Content -->
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead class="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
                                 <tr>
-                                    <th class="py-3 px-4 w-12 text-center">No</th>
+                                    <th class="py-3 px-3 w-10 text-center">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"
+                                            class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer" title="Pilih Semua">
+                                    </th>
+                                    <th class="py-3 px-3 w-12 text-center">No</th>
                                     <th class="py-3 px-4">Kode QR</th>
                                     <th class="py-3 px-4">No. Identitas</th>
                                     <th class="py-3 px-4">Nama Lengkap</th>
@@ -486,12 +508,12 @@
                                     <th class="py-3 px-4">Institusi</th>
                                     <th class="py-3 px-4">Pekerjaan</th>
                                     <th class="py-3 px-4" id="colWaktuHeader">Waktu Daftar</th>
-                                    <th class="py-3 px-4 text-center w-28">Aksi</th>
+                                    <th class="py-3 px-4 text-center w-36">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="participantTableBody" class="divide-y divide-slate-200">
                                 <tr>
-                                    <td colspan="9" class="text-center py-12 text-slate-400">
+                                    <td colspan="10" class="text-center py-12 text-slate-400">
                                         <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600"></i>
                                         Memuat data...
                                     </td>
@@ -906,6 +928,97 @@
                         class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-600/30">
                         <i data-lucide="upload" class="w-4 h-4"></i>
                         <span id="btnSubmitImportText">Mulai Impor Data</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT PARTICIPANT MODAL -->
+    <div id="editParticipantModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto p-3 sm:p-4 flex items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-100 animate-in fade-in zoom-in duration-200 my-auto max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 sm:p-6 text-white text-center relative shrink-0">
+                <button onclick="closeEditParticipantModal()" class="absolute top-4 right-4 text-white/80 hover:text-white transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
+                    <i data-lucide="user-cog" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <h3 class="text-xl font-extrabold">Edit Data Peserta</h3>
+                <p class="text-xs text-blue-100 mt-1">Perbarui informasi identitas, kontak, atau status kehadiran peserta</p>
+            </div>
+
+            <form id="editParticipantForm" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+                <input type="hidden" id="editParticipantId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Nama Lengkap <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="editNama" required
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            No. Identitas (NIM/NIP/NIDN) <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" id="editNim" required
+                            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            No. HP / WhatsApp
+                        </label>
+                        <input type="text" id="editHp"
+                            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-mono" placeholder="0812...">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Institusi / Instansi / Kampus <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="editInstitusi" required
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Pekerjaan / Profesi <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="editPekerjaan" required
+                            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="Mahasiswa">Mahasiswa</option>
+                            <option value="Dosen">Dosen</option>
+                            <option value="Praktisi">Praktisi</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Status Kehadiran <span class="text-rose-500">*</span>
+                        </label>
+                        <select id="editStatus" required
+                            class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-semibold">
+                            <option value="pendaftar">⏳ Pendaftar (Belum Hadir)</option>
+                            <option value="peserta">✅ Peserta (Sudah Hadir)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeEditParticipantModal()"
+                        class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSaveEditParticipant"
+                        class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-600/30">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span id="btnSaveEditParticipantText">Simpan Perubahan</span>
                     </button>
                 </div>
             </form>
@@ -1393,8 +1506,12 @@
                         const safeTime = escapeHtml(timeDisplay);
 
                         html += `
-                            <tr class="hover:bg-slate-50/80 transition">
-                                <td class="py-3 px-4 text-center text-slate-400 font-medium">${idx + 1}</td>
+                            <tr class="hover:bg-slate-50/80 transition" id="row-participant-${p.id}">
+                                <td class="py-3 px-3 text-center">
+                                    <input type="checkbox" class="row-checkbox w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                                        value="${p.id}" onchange="updateSelectedCount()">
+                                </td>
+                                <td class="py-3 px-3 text-center text-slate-400 font-medium">${idx + 1}</td>
                                 <td class="py-3 px-4">
                                     <button onclick="openQrModal('${safeQr}', '${encodeURIComponent(p.nama_lengkap)}')" class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition inline-flex items-center gap-1">
                                         <i data-lucide="qr-code" class="w-3 h-3"></i>
@@ -1425,6 +1542,10 @@
                                              class="p-1.5 rounded-lg ${toggleActionClass} transition">
                                             <i data-lucide="${toggleActionIcon}" class="w-3.5 h-3.5"></i>
                                         </button>
+                                        <button onclick="openEditParticipantModal(${p.id})" title="Edit Data Peserta"
+                                             class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition">
+                                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                        </button>
                                         <button onclick="deleteParticipant(${p.id}, '${encodeURIComponent(p.nama_lengkap)}')" title="Hapus Data"
                                              class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition">
                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -1439,7 +1560,7 @@
                     document.getElementById('tableCount').textContent = '0';
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="9" class="text-center py-12 text-slate-400">
+                            <td colspan="10" class="text-center py-12 text-slate-400">
                                 <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
                                 <p class="font-medium text-slate-600">Tidak ada data ${currentInfoSubTab}</p>
                                 <p class="text-[11px] text-slate-400 mt-0.5">Belum ada data yang cocok dengan kriteria pencarian.</p>
@@ -1447,6 +1568,7 @@
                         </tr>
                     `;
                 }
+                clearSelectedRows();
                 lucide.createIcons();
             } catch (e) {
                 console.error(e);
@@ -1508,6 +1630,206 @@
                 console.error(e);
             }
         }
+
+        // =========================================================================
+        // MULTI-SELECT & BULK DELETE PARTICIPANTS
+        // =========================================================================
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const totalCheckboxes = document.querySelectorAll('.row-checkbox');
+            const count = checkboxes.length;
+            const bar = document.getElementById('bulkActionBar');
+            const text = document.getElementById('selectedCountText');
+            const masterCheckbox = document.getElementById('selectAllCheckbox');
+
+            if (count > 0) {
+                if (bar) bar.classList.remove('hidden');
+                if (text) text.textContent = `${count} data terpilih`;
+            } else {
+                if (bar) bar.classList.add('hidden');
+            }
+
+            if (masterCheckbox) {
+                masterCheckbox.checked = totalCheckboxes.length > 0 && count === totalCheckboxes.length;
+            }
+        }
+
+        function clearSelectedRows() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            const masterCheckbox = document.getElementById('selectAllCheckbox');
+            if (masterCheckbox) masterCheckbox.checked = false;
+            const bar = document.getElementById('bulkActionBar');
+            if (bar) bar.classList.add('hidden');
+        }
+
+        async function bulkDeleteSelected() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+            if (ids.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Pilih Data Terlebih Dahulu',
+                    text: 'Centang kotak pada baris data yang ingin Anda hapus.',
+                    confirmButtonColor: '#2563eb'
+                });
+                return;
+            }
+
+            const confirm = await Swal.fire({
+                title: `Hapus ${ids.length} Data Terpilih?`,
+                text: `Data yang dihapus (${ids.length} orang) tidak dapat dipulihkan kembali. Lanjutkan?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e11d48',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: `Ya, Hapus ${ids.length} Data`,
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`${window.BASE_URL}/api/participants/bulk-delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: ids })
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Dihapus',
+                        text: json.message || `${ids.length} data berhasil dihapus.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    loadParticipantsData();
+                    updateStats();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menghapus',
+                        text: json.message || 'Terjadi kesalahan pada server.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Koneksi',
+                    text: 'Gagal menghubungi server.',
+                    confirmButtonColor: '#e11d48'
+                });
+            }
+        }
+
+        // =========================================================================
+        // EDIT PARTICIPANT MODAL LOGIC
+        // =========================================================================
+        async function openEditParticipantModal(id) {
+            try {
+                const res = await fetch(`${window.BASE_URL}/api/participant/${id}`);
+                const json = await res.json();
+
+                if (!json.success || !json.data) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data Tidak Ditemukan',
+                        text: json.message || 'Gagal memuat data peserta.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                    return;
+                }
+
+                const p = json.data;
+                document.getElementById('editParticipantId').value = p.id;
+                document.getElementById('editNama').value = p.nama_lengkap;
+                document.getElementById('editNim').value = p.nim_nip;
+                document.getElementById('editHp').value = p.no_hp || '';
+                document.getElementById('editInstitusi').value = p.institusi;
+                document.getElementById('editPekerjaan').value = p.pekerjaan;
+                document.getElementById('editStatus').value = p.status;
+
+                document.getElementById('editParticipantModal').classList.remove('hidden');
+                lucide.createIcons();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closeEditParticipantModal() {
+            document.getElementById('editParticipantModal').classList.add('hidden');
+            document.getElementById('editParticipantForm').reset();
+        }
+
+        document.getElementById('editParticipantForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editParticipantId').value;
+            const btn = document.getElementById('btnSaveEditParticipant');
+            const btnText = document.getElementById('btnSaveEditParticipantText');
+
+            const payload = {
+                nama_lengkap: document.getElementById('editNama').value.trim(),
+                nim_nip: document.getElementById('editNim').value.trim(),
+                no_hp: document.getElementById('editHp').value.trim(),
+                institusi: document.getElementById('editInstitusi').value.trim(),
+                pekerjaan: document.getElementById('editPekerjaan').value,
+                status: document.getElementById('editStatus').value
+            };
+
+            btn.disabled = true;
+            btnText.textContent = 'Menyimpan...';
+
+            try {
+                const res = await fetch(`${window.BASE_URL}/api/participant/${id}/edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    closeEditParticipantModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Diperbarui',
+                        text: 'Informasi data peserta berhasil disimpan.',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                    loadParticipantsData();
+                    updateStats();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Memperbarui',
+                        text: json.message || 'Terjadi kesalahan saat menyimpan.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Koneksi',
+                    text: 'Gagal menghubungi server.',
+                    confirmButtonColor: '#2563eb'
+                });
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Simpan Perubahan';
+            }
+        });
 
         // =========================================================================
         // SUPER ADMIN MANAGEMENT LOGIC

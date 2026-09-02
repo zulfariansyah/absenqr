@@ -460,6 +460,70 @@ def api_toggle_status(participant_id):
         'data': updated
     })
 
+@app.route('/api/participant/<int:participant_id>', methods=['GET'])
+@admin_required
+def api_get_participant(participant_id):
+    """Mengambil data 1 orang peserta berdasarkan ID untuk keperluan edit"""
+    participant = database.get_participant_by_id(participant_id)
+    if not participant:
+        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan.'}), 404
+    return jsonify({
+        'success': True,
+        'data': participant
+    })
+
+@app.route('/api/participant/<int:participant_id>/edit', methods=['POST', 'PUT'])
+@app.route('/api/participant/<int:participant_id>', methods=['PUT'])
+@admin_required
+def api_edit_participant(participant_id):
+    """Memperbarui informasi data peserta (Fitur Edit)"""
+    data = request.get_json() or {}
+    raw_nim = data.get('nim_nip', '').strip()
+    raw_nama = data.get('nama_lengkap', '').strip()
+    raw_no_hp = data.get('no_hp', '').strip()
+    raw_institusi = data.get('institusi', '').strip()
+    raw_pekerjaan = data.get('pekerjaan', '').strip()
+    raw_status = data.get('status', '').strip().lower()
+
+    if not raw_nim or not raw_nama or not raw_institusi or not raw_pekerjaan:
+        return jsonify({
+            'success': False,
+            'message': 'Kolom No. Identitas, Nama Lengkap, Institusi, dan Pekerjaan wajib diisi!'
+        }), 400
+
+    if len(raw_nim) < 3 or len(raw_nim) > 30:
+        return jsonify({'success': False, 'message': 'No. Identitas harus berisi antara 3 hingga 30 karakter!'}), 400
+
+    if len(raw_nama) < 2 or len(raw_nama) > 100:
+        return jsonify({'success': False, 'message': 'Nama Lengkap harus berisi antara 2 hingga 100 karakter!'}), 400
+
+    if raw_no_hp and (len(raw_no_hp) < 8 or len(raw_no_hp) > 20):
+        return jsonify({'success': False, 'message': 'Nomor HP / WA harus berisi antara 8 hingga 20 karakter!'}), 400
+
+    valid_jobs = ['Mahasiswa', 'Dosen', 'Praktisi', 'Lainnya']
+    if raw_pekerjaan not in valid_jobs:
+        return jsonify({'success': False, 'message': f'Pekerjaan harus salah satu dari: {", ".join(valid_jobs)}'}), 400
+
+    nim_nip = html.escape(raw_nim)
+    nama_lengkap = html.escape(raw_nama)
+    no_hp = html.escape(raw_no_hp) if raw_no_hp else ''
+    institusi = html.escape(raw_institusi)
+    pekerjaan = html.escape(raw_pekerjaan)
+    status = raw_status if raw_status in ['pendaftar', 'peserta'] else None
+
+    result = database.update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status)
+    if not result:
+        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan atau gagal diperbarui.'}), 404
+        
+    if isinstance(result, dict) and 'error' in result:
+        return jsonify({'success': False, 'message': result['message']}), 400
+
+    return jsonify({
+        'success': True,
+        'message': 'Data peserta berhasil diperbarui!',
+        'data': result
+    })
+
 @app.route('/api/participant/<int:participant_id>', methods=['DELETE'])
 @admin_required
 def api_delete_participant(participant_id):
@@ -471,6 +535,22 @@ def api_delete_participant(participant_id):
     return jsonify({
         'success': True,
         'message': 'Data berhasil dihapus.'
+    })
+
+@app.route('/api/participants/bulk-delete', methods=['POST'])
+@admin_required
+def api_bulk_delete_participants():
+    """Menghapus banyak peserta sekaligus (Bulk Delete)"""
+    data = request.get_json() or {}
+    ids = data.get('ids', [])
+    if not ids or not isinstance(ids, list):
+        return jsonify({'success': False, 'message': 'Tidak ada data peserta yang dipilih untuk dihapus.'}), 400
+
+    deleted_count = database.bulk_delete_participants(ids)
+    return jsonify({
+        'success': True,
+        'message': f'Berhasil menghapus {deleted_count} data peserta terpilih.',
+        'deleted_count': deleted_count
     })
 
 @app.route('/api/settings', methods=['GET'])

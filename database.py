@@ -430,6 +430,58 @@ def delete_participant(participant_id):
     conn.close()
     return deleted
 
+def bulk_delete_participants(ids):
+    """Menghapus banyak peserta sekaligus berdasarkan daftar ID"""
+    if not ids or not isinstance(ids, list):
+        return 0
+    valid_ids = [int(i) for i in ids if str(i).isdigit() or isinstance(i, int)]
+    if not valid_ids:
+        return 0
+    placeholders = ', '.join(['?'] * len(valid_ids))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM participants WHERE id IN ({placeholders})", valid_ids)
+    count = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return count
+
+def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status=None):
+    """Memperbarui informasi data peserta (Fitur Edit)"""
+    participant = get_participant_by_id(participant_id)
+    if not participant:
+        return None
+        
+    cleaned_nim = nim_nip.strip()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Cek apakah No. Identitas baru sudah dipakai oleh peserta lain
+    cursor.execute("SELECT id FROM participants WHERE nim_nip = ? AND id != ?", (cleaned_nim, participant_id))
+    existing_other = cursor.fetchone()
+    if existing_other:
+        conn.close()
+        return {"error": "DUPLICATE_NIM", "message": f'Nomor Identitas "{cleaned_nim}" sudah digunakan oleh peserta lain.'}
+        
+    current_status = status if status in ['pendaftar', 'peserta'] else participant['status']
+    attended_at = participant['attended_at']
+    if current_status == 'peserta' and not attended_at:
+        attended_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    elif current_status == 'pendaftar':
+        attended_at = None
+
+    cursor.execute("""
+        UPDATE participants
+        SET nim_nip = ?, nama_lengkap = ?, no_hp = ?, institusi = ?, pekerjaan = ?, status = ?, attended_at = ?
+        WHERE id = ?
+    """, (cleaned_nim, nama_lengkap.strip(), no_hp.strip(), institusi.strip(), pekerjaan.strip(), current_status, attended_at, participant_id))
+    conn.commit()
+    
+    cursor.execute("SELECT * FROM participants WHERE id = ?", (participant_id,))
+    updated = dict(cursor.fetchone())
+    conn.close()
+    return updated
+
 def get_participants(status=None, search=None, pekerjaan=None):
     """
     Mengambil data peserta dengan filter status ('pendaftar'/'peserta'),
