@@ -20,9 +20,17 @@ class PrefixMiddleware:
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
+        x_prefix = environ.get('HTTP_X_FORWARDED_PREFIX', '')
+        
         if path_info.startswith(self.prefix):
             environ['PATH_INFO'] = path_info[len(self.prefix):] or '/'
             environ['SCRIPT_NAME'] = self.prefix
+        elif x_prefix:
+            environ['SCRIPT_NAME'] = x_prefix
+        elif environ.get('HTTP_X_FORWARDED_HOST') or environ.get('HTTP_X_FORWARDED_FOR') or environ.get('HTTP_X_REAL_IP'):
+            # Permintaan diteruskan dari Reverse Proxy Apache/Nginx (Production)
+            environ['SCRIPT_NAME'] = self.prefix
+
         return self.wsgi_app(environ, start_response)
 
 app.wsgi_app = PrefixMiddleware(ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1))
