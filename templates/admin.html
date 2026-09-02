@@ -1923,7 +1923,7 @@
             
             const downloadBtn = document.getElementById('qrModalDownload');
             downloadBtn.href = qrUrl;
-            downloadBtn.download = `QR_${qrCode}_${name.replace(/\s+/g, '_')}.png`;
+            downloadBtn.download = `qr_semnasretro_${qrCode}.png`;
 
             document.getElementById('qrModalTicketLink').href = `${window.BASE_URL}/ticket/${qrCode}`;
 

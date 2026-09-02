@@ -115,7 +115,7 @@
 
                 <!-- Action buttons (No print) -->
                 <div class="grid grid-cols-2 gap-3 no-print pt-2">
-                    <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="QR_{{ participant.qr_code }}_{{ participant.nama_lengkap }}.png"
+                    <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="qr_semnasretro_{{ participant.qr_code }}.png"
                         class="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
                         <i data-lucide="download" class="w-4 h-4"></i> Download QR
                     </a>

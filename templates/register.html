@@ -306,7 +306,7 @@
                 
                 const downloadBtn = document.getElementById('btnDownloadQr');
                 downloadBtn.href = qrUrl;
-                downloadBtn.download = `Tiket_QR_${p.qr_code}_${p.nama_lengkap.replace(/\s+/g, '_')}.png`;
+                downloadBtn.download = `qr_semnasretro_${p.qr_code}.png`;
 
                 const ticketBtn = document.getElementById('btnOpenTicket');
                 ticketBtn.href = `${window.BASE_URL || ''}/ticket/${p.qr_code}`;

@@ -602,7 +602,7 @@ def api_qr_image(qr_code):
         buffer,
         mimetype='image/png',
         as_attachment=False,
-        download_name=f"QR_{qr_code}.png"
+        download_name=f"qr_semnasretro_{qr_code}.png"
     )
 
 @app.route('/api/export-csv')
