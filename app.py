@@ -12,8 +12,20 @@ from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-# Dukungan Reverse Proxy (Nginx subpath / header X-Forwarded-Prefix & Proto)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+# Dukungan Reverse Proxy (Nginx / Apache subpath / header X-Forwarded-Prefix & Proto)
+class PrefixMiddleware:
+    def __init__(self, wsgi_app, prefix='/absenpeserta'):
+        self.wsgi_app = wsgi_app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+        if path_info.startswith(self.prefix):
+            environ['PATH_INFO'] = path_info[len(self.prefix):] or '/'
+            environ['SCRIPT_NAME'] = self.prefix
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = PrefixMiddleware(ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1))
 
 app.config['SECRET_KEY'] = 'seminar-secret-key-2026'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')

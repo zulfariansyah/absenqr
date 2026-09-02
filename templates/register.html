@@ -259,13 +259,26 @@
         btnText.textContent = 'Memproses Pendaftaran...';
 
         try {
-            const response = await fetch(`${window.BASE_URL}/api/register`, {
+            const apiUrl = `${window.BASE_URL || ''}/api/register`;
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const res = await response.json();
+            let res;
+            try {
+                res = await response.json();
+            } catch (parseErr) {
+                console.error('Response is not JSON:', response.status, parseErr);
+                Swal.fire({
+                    icon: 'error',
+                    title: `Error Respon Server (${response.status})`,
+                    text: `Server memberikan respon yang tidak sesuai (Status ${response.status}). Silakan cek proxy atau log server.`,
+                    confirmButtonColor: '#16a34a'
+                });
+                return;
+            }
 
             if (response.ok && res.success) {
                 const p = res.data;
@@ -279,7 +292,7 @@
                 document.getElementById('modalInstitusi').textContent = p.institusi;
                 document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
                 
-                const qrUrl = `${window.BASE_URL}/api/qr/${p.qr_code}.png`;
+                const qrUrl = `${window.BASE_URL || ''}/api/qr/${p.qr_code}.png`;
                 document.getElementById('modalQrImage').src = qrUrl;
                 
                 const downloadBtn = document.getElementById('btnDownloadQr');
@@ -287,7 +300,7 @@
                 downloadBtn.download = `Tiket_QR_${p.qr_code}_${p.nama_lengkap.replace(/\s+/g, '_')}.png`;
 
                 const ticketBtn = document.getElementById('btnOpenTicket');
-                ticketBtn.href = `${window.BASE_URL}/ticket/${p.qr_code}`;
+                ticketBtn.href = `${window.BASE_URL || ''}/ticket/${p.qr_code}`;
 
                 // Show modal & confetti
                 successModal.classList.remove('hidden');
@@ -309,14 +322,14 @@
                     cancelButtonText: 'Tutup'
                 }).then((choice) => {
                     if (choice.isConfirmed) {
-                        window.open(`${window.BASE_URL}/ticket/${res.data.qr_code}`, '_blank');
+                        window.open(`${window.BASE_URL || ''}/ticket/${res.data.qr_code}`, '_blank');
                     }
                 });
             } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Mendaftar',
-                    text: res.message || 'Terjadi kesalahan pada server.',
+                    text: res.message || `Terjadi kesalahan pada server (Status: ${response.status}).`,
                     confirmButtonColor: '#16a34a'
                 });
             }
@@ -325,7 +338,7 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Koneksi Bermasalah',
-                text: 'Tidak dapat menghubungi server. Pastikan server aktif.',
+                text: 'Tidak dapat menghubungi server: ' + (error.message || 'Koneksi terputus'),
                 confirmButtonColor: '#16a34a'
             });
         } finally {
