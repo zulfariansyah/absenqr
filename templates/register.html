@@ -39,12 +39,12 @@
                 <div>
                     <label for="nim_nip" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="id-card" class="w-4 h-4 text-emerald-600"></i>
-                        NIM / NIP <span class="text-rose-500">*</span>
+                        NIM / NIP / NIDN / NUPTK / No. Identitas <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="nim_nip" name="nim_nip" required
-                        placeholder="Contoh: 2110511001 atau 19850101..."
+                        placeholder="Contoh: 198501012010121001 / 2110511001 / 001205..."
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                    <p class="text-xs text-slate-500 mt-1">Nomor Induk Mahasiswa atau Pegawai</p>
+                    <p class="text-xs text-slate-500 mt-1">NIM, NIP, NIDN, NUPTK, KTP, atau nomor identitas unik lainnya</p>
                 </div>
 
                 <div>
@@ -184,7 +184,7 @@
                     <span id="modalNama" class="font-bold text-slate-900 text-right">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">NIM / NIP:</span>
+                    <span class="text-slate-500">No. Identitas:</span>
                     <span id="modalNim" class="font-bold font-mono text-slate-900">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
@@ -259,7 +259,7 @@
         btnText.textContent = 'Memproses Pendaftaran...';
 
         try {
-            const response = await fetch('/api/register', {
+            const response = await fetch(`${window.BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -278,9 +278,8 @@
                 document.getElementById('modalHp').textContent = p.no_hp || '-';
                 document.getElementById('modalInstitusi').textContent = p.institusi;
                 document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
-                document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
                 
-                const qrUrl = `/api/qr/${p.qr_code}.png`;
+                const qrUrl = `${window.BASE_URL}/api/qr/${p.qr_code}.png`;
                 document.getElementById('modalQrImage').src = qrUrl;
                 
                 const downloadBtn = document.getElementById('btnDownloadQr');
@@ -288,7 +287,7 @@
                 downloadBtn.download = `Tiket_QR_${p.qr_code}_${p.nama_lengkap.replace(/\s+/g, '_')}.png`;
 
                 const ticketBtn = document.getElementById('btnOpenTicket');
-                ticketBtn.href = `/ticket/${p.qr_code}`;
+                ticketBtn.href = `${window.BASE_URL}/ticket/${p.qr_code}`;
 
                 // Show modal & confetti
                 successModal.classList.remove('hidden');
@@ -302,7 +301,7 @@
                 // Friendly modal if already registered
                 Swal.fire({
                     icon: 'info',
-                    title: 'NIM/NIP Sudah Terdaftar',
+                    title: 'No. Identitas Sudah Terdaftar',
                     text: res.message,
                     showCancelButton: true,
                     confirmButtonColor: '#16a34a',
@@ -310,7 +309,7 @@
                     cancelButtonText: 'Tutup'
                 }).then((choice) => {
                     if (choice.isConfirmed) {
-                        window.open(`/ticket/${res.data.qr_code}`, '_blank');
+                        window.open(`${window.BASE_URL}/ticket/${res.data.qr_code}`, '_blank');
                     }
                 });
             } else {

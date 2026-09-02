@@ -9,8 +9,12 @@ from qrcode.image.pil import PilImage
 
 import database
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+# Dukungan Reverse Proxy (Nginx subpath / header X-Forwarded-Prefix & Proto)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 app.config['SECRET_KEY'] = 'seminar-secret-key-2026'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -319,14 +323,14 @@ def api_register():
     if not raw_nim or not raw_nama or not raw_no_hp or not raw_institusi or not raw_pekerjaan:
         return jsonify({
             'success': False,
-            'message': 'Semua kolom formulir (NIM/NIP, Nama Lengkap, No. HP / WhatsApp, Institusi, Pekerjaan) wajib diisi!'
+            'message': 'Semua kolom formulir (No. Identitas, Nama Lengkap, No. HP / WhatsApp, Institusi, Pekerjaan) wajib diisi!'
         }), 400
         
     # 4. Validasi Panjang Karakter (Mencegah Buffer/Payload Abuse)
     if len(raw_nim) < 3 or len(raw_nim) > 30:
         return jsonify({
             'success': False,
-            'message': 'NIM / NIP harus berisi antara 3 hingga 30 karakter!'
+            'message': 'No. Identitas (NIM/NIP/NIDN/NUPTK/KTP) harus berisi antara 3 hingga 30 karakter!'
         }), 400
 
     if len(raw_nama) < 2 or len(raw_nama) > 100:
@@ -361,13 +365,13 @@ def api_register():
     institusi = html.escape(raw_institusi)
     pekerjaan = html.escape(raw_pekerjaan)
 
-    # 6. Deteksi Duplikasi NIM/NIP
+    # 6. Deteksi Duplikasi Nomor Identitas
     existing = database.get_participant_by_nim(nim_nip)
     if existing:
         return jsonify({
             'success': False,
             'code': 'DUPLICATE_NIM',
-            'message': f'NIM/NIP "{nim_nip}" sudah terdaftar atas nama {existing["nama_lengkap"]}. QR Code tiket sudah pernah dibuat sebelumnya.',
+            'message': f'No. Identitas "{nim_nip}" sudah terdaftar atas nama {existing["nama_lengkap"]}. QR Code tiket sudah pernah dibuat sebelumnya.',
             'data': existing
         }), 400
         
@@ -516,23 +520,37 @@ def api_network_info():
     """Mengembalikan informasi IP jaringan lokal dan link akses"""
     port = int(os.environ.get('PORT', 5001))
     local_ip = get_local_ip()
+    prefix = request.script_root.rstrip('/')
+    base_lan = f"http://{local_ip}:{port}{prefix}"
+    base_local = f"http://127.0.0.1:{port}{prefix}"
+    public_base = request.host_url.rstrip('/') + prefix
+    
+    # Jika diakses lewat domain/proxy (ada script_root atau bukan localhost)
+    is_behind_domain = bool(request.script_root or (request.host and not request.host.startswith('127.0.0.1') and not request.host.startswith('localhost') and not request.host.startswith('0.0.0.0')))
+    
     return jsonify({
         'local_ip': local_ip,
         'port': port,
-        'register_url_local': f"http://127.0.0.1:{port}",
-        'register_url_lan': f"http://{local_ip}:{port}",
-        'admin_url_local': f"http://127.0.0.1:{port}/console",
-        'admin_url_lan': f"http://{local_ip}:{port}/console",
+        'prefix': prefix,
+        'register_url_local': base_local,
+        'register_url_lan': public_base if is_behind_domain else base_lan,
+        'admin_url_local': f"{base_local}/console",
+        'admin_url_lan': f"{public_base}/console" if is_behind_domain else f"{base_lan}/console",
     })
 
 @app.route('/api/qr-url.png')
 def api_qr_url():
-    """Menghasilkan QR Code untuk URL (misal link registrasi lokal)"""
+    """Menghasilkan QR Code untuk URL (misal link registrasi lokal / server)"""
     url_data = request.args.get('data', '').strip()
     if not url_data:
         port = int(os.environ.get('PORT', 5001))
         local_ip = get_local_ip()
-        url_data = f"http://{local_ip}:{port}"
+        prefix = request.script_root.rstrip('/')
+        is_behind_domain = bool(request.script_root or (request.host and not request.host.startswith('127.0.0.1') and not request.host.startswith('localhost') and not request.host.startswith('0.0.0.0')))
+        if is_behind_domain:
+            url_data = request.host_url.rstrip('/') + prefix
+        else:
+            url_data = f"http://{local_ip}:{port}{prefix}"
 
     qr = qrcode.QRCode(
         version=1,
@@ -586,7 +604,7 @@ def export_csv():
     output.write('\ufeff')
     writer = csv.writer(output)
     
-    writer.writerow(['No', 'Kode QR', 'NIM / NIP', 'Nama Lengkap', 'No. HP / WA', 'Institusi', 'Pekerjaan', 'Status', 'Waktu Pendaftaran', 'Waktu Hadir'])
+    writer.writerow(['No', 'Kode QR', 'No. Identitas (NIM/NIP/NIDN/NUPTK)', 'Nama Lengkap', 'No. HP / WA', 'Institusi', 'Pekerjaan', 'Status', 'Waktu Pendaftaran', 'Waktu Hadir'])
     
     for idx, row in enumerate(rows, start=1):
         status_label = 'Peserta (Hadir)' if row['status'] == 'peserta' else 'Pendaftar (Belum Hadir)'
@@ -654,7 +672,7 @@ def import_csv():
         
         known_headers = {
             'qr_code': ['kode qr', 'qr_code', 'qr', 'kode', 'qrcode'],
-            'nim_nip': ['nim / nip', 'nim/nip', 'nim_nip', 'nim', 'nip', 'no identitas', 'nomor induk'],
+            'nim_nip': ['no. identitas (nim/nip/nidn/nuptk)', 'no. identitas', 'no identitas', 'nomor identitas', 'nim / nip', 'nim/nip', 'nim_nip', 'nim', 'nip', 'nidn', 'nuptk', 'nik', 'ktp', 'nomor induk'],
             'nama_lengkap': ['nama lengkap', 'nama_lengkap', 'nama', 'fullname', 'name'],
             'no_hp': ['no. hp / wa', 'no hp / wa', 'no. hp', 'no hp', 'nomor hp', 'no telepon', 'telepon', 'whatsapp', 'no wa', 'phone', 'mobile', 'no_hp'],
             'institusi': ['institusi', 'instansi', 'universitas', 'kampus', 'perusahaan', 'institution'],

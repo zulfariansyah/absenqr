@@ -28,7 +28,7 @@
             </div>
             <h2 class="text-2xl font-bold text-slate-900">Tiket Tidak Ditemukan</h2>
             <p class="mt-2 text-slate-600 text-sm">{{ error }}</p>
-            <a href="/" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition">
+            <a href="{{ url_for('index') }}" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Form Pendaftaran
             </a>
         </div>
@@ -60,7 +60,7 @@
             <div class="p-6 sm:p-8 space-y-6 text-center">
                 <!-- QR Code Box -->
                 <div class="inline-block bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
-                    <img src="/api/qr/{{ participant.qr_code }}.png" alt="QR Code {{ participant.qr_code }}" class="w-52 h-52 object-contain mx-auto">
+                    <img src="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" alt="QR Code {{ participant.qr_code }}" class="w-52 h-52 object-contain mx-auto">
                     <div class="mt-3">
                         <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Kode Absensi</div>
                         <div class="font-mono text-2xl font-extrabold text-slate-900 tracking-widest">{{ participant.qr_code }}</div>
@@ -90,7 +90,7 @@
                         <span class="font-bold text-slate-900 text-right">{{ participant.nama_lengkap }}</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">NIM / NIP</span>
+                        <span class="text-slate-500 font-medium">No. Identitas (NIM/NIP/NIDN)</span>
                         <span class="font-bold text-slate-900 font-mono">{{ participant.nim_nip }}</span>
                     </div>
                     {% if participant.no_hp %}
@@ -115,7 +115,7 @@
 
                 <!-- Action buttons (No print) -->
                 <div class="grid grid-cols-2 gap-3 no-print pt-2">
-                    <a href="/api/qr/{{ participant.qr_code }}.png" download="QR_{{ participant.qr_code }}_{{ participant.nama_lengkap }}.png"
+                    <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="QR_{{ participant.qr_code }}_{{ participant.nama_lengkap }}.png"
                         class="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
                         <i data-lucide="download" class="w-4 h-4"></i> Download QR
                     </a>
@@ -126,7 +126,7 @@
                 </div>
 
                 <div class="no-print pt-2">
-                    <a href="/" class="text-xs text-slate-500 hover:text-emerald-600 transition inline-flex items-center gap-1">
+                    <a href="{{ url_for('index') }}" class="text-xs text-slate-500 hover:text-emerald-600 transition inline-flex items-center gap-1">
                         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Formulir Pendaftaran Baru
                     </a>
                 </div>
