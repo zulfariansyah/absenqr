@@ -17,24 +17,49 @@ if [ -f "$PID_FILE" ]; then
     fi
 fi
 
-# Cari path gunicorn di virtual environment
-if [ -f "$PROJECT_DIR/venv/bin/gunicorn" ]; then
+# Cari path Python / Gunicorn di virtual environment
+PYTHON_BIN=""
+GUNICORN_BIN=""
+
+if [ -f "$PROJECT_DIR/venv/bin/python" ]; then
+    PYTHON_BIN="$PROJECT_DIR/venv/bin/python"
     GUNICORN_BIN="$PROJECT_DIR/venv/bin/gunicorn"
-elif [ -f "$PROJECT_DIR/.venv/bin/gunicorn" ]; then
+elif [ -f "$PROJECT_DIR/.venv/bin/python" ]; then
+    PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
     GUNICORN_BIN="$PROJECT_DIR/.venv/bin/gunicorn"
 else
+    PYTHON_BIN="python3"
     GUNICORN_BIN="gunicorn"
 fi
 
+# Jika gunicorn belum terinstall di venv, otomatis install
+if [ ! -f "$GUNICORN_BIN" ] && ! command -v "$GUNICORN_BIN" > /dev/null 2>&1; then
+    echo "⚙️  Gunicorn belum terpasang. Memasang gunicorn sekarang..."
+    "$PYTHON_BIN" -m pip install gunicorn
+fi
+
 echo "🚀 Menjalankan Aplikasi Absen Seminar di background (Port $PORT)..."
-nohup "$GUNICORN_BIN" --workers 3 --bind 127.0.0.1:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
+
+if [ -f "$GUNICORN_BIN" ]; then
+    nohup "$GUNICORN_BIN" --workers 3 --bind 127.0.0.1:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
+elif command -v gunicorn > /dev/null 2>&1; then
+    nohup gunicorn --workers 3 --bind 127.0.0.1:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
+else
+    # Fallback menjalankan app.py jika gunicorn tidak tersedia
+    echo "⚠️  Menjalankan fallback dengan Python..."
+    nohup "$PYTHON_BIN" app.py >> "$LOG_FILE" 2>&1 &
+    echo $! > "$PID_FILE"
+fi
 
 sleep 2
 
 if [ -f "$PID_FILE" ]; then
-    NEW_PID=$(cat "$PID_FILE")
-    echo "✅ Berhasil dijalankan! (PID: $NEW_PID)"
-    echo "📄 File log: $LOG_FILE"
-else
-    echo "❌ Gagal menjalankan. Silakan cek $LOG_FILE"
+    NEW_PID=$(cat "$PID_FILE" 2>/dev/null)
+    if [ -n "$NEW_PID" ] && ps -p "$NEW_PID" > /dev/null 2>&1; then
+        echo "✅ Berhasil dijalankan! (PID: $NEW_PID)"
+        echo "📄 File log: $LOG_FILE"
+        exit 0
+    fi
 fi
+
+echo "❌ Gagal menjalankan. Silakan cek $LOG_FILE"
