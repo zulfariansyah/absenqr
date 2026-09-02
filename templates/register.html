@@ -135,10 +135,10 @@
 </div>
 
 <!-- SUCCESS MODAL POPUP (TIKET QR CODE) -->
-<div id="successModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+<div id="successModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto p-3 sm:p-4 flex items-center justify-center">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-100 animate-in fade-in zoom-in duration-200 my-auto max-h-[92vh] flex flex-col overflow-hidden">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white text-center relative">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-5 sm:p-6 text-white text-center relative shrink-0">
             <button onclick="closeModalAndReset()" class="absolute top-4 right-4 text-white/80 hover:text-white transition">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
@@ -150,7 +150,7 @@
         </div>
 
         <!-- Modal Body: QR Code & Warning Banner -->
-        <div class="p-6 text-center space-y-4">
+        <div class="p-5 sm:p-6 text-center space-y-4 overflow-y-auto flex-1">
             <!-- IMPORTANT WARNING BANNER FOR PARTICIPANTS -->
             <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left flex items-start gap-3 shadow-sm">
                 <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
