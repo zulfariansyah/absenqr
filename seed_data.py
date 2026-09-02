@@ -7,18 +7,18 @@ import database
 database.init_db()
 
 dummy_registrants = [
-    ("2110511001", "Ahmad Fauzi", "Universitas Indonesia", "Mahasiswa"),
-    ("198501012010121001", "Dr. Siti Rahmawati, M.Kom.", "Institut Teknologi Bandung", "Dosen"),
-    ("197903152005012002", "Prof. Bambang Supriyanto", "Universitas Gadjah Mada", "Dosen"),
-    ("PR-99201", "Kevin Sanjaya, S.T.", "PT Digital Inovasi Asia", "Praktisi"),
-    ("2210512045", "Nadia Putri Maharani", "Universitas Diponegoro", "Mahasiswa"),
-    ("L-88301", "Rina Kusuma Dewi", "Yayasan Pendidikan Nusantara", "Lainnya")
+    ("2110511001", "Ahmad Fauzi", "081234567801", "Universitas Indonesia", "Mahasiswa"),
+    ("198501012010121001", "Dr. Siti Rahmawati, M.Kom.", "081234567802", "Institut Teknologi Bandung", "Dosen"),
+    ("197903152005012002", "Prof. Bambang Supriyanto", "081234567803", "Universitas Gadjah Mada", "Dosen"),
+    ("PR-99201", "Kevin Sanjaya, S.T.", "081234567804", "PT Digital Inovasi Asia", "Praktisi"),
+    ("2210512045", "Nadia Putri Maharani", "081234567805", "Universitas Diponegoro", "Mahasiswa"),
+    ("L-88301", "Rina Kusuma Dewi", "081234567806", "Yayasan Pendidikan Nusantara", "Lainnya")
 ]
 
 print("🌱 Menambahkan data simulasi seminar...")
 created_participants = []
-for nim, nama, inst, job in dummy_registrants:
-    p = database.register_participant(nim, nama, inst, job)
+for nim, nama, hp, inst, job in dummy_registrants:
+    p = database.register_participant(nim, nama, hp, inst, job)
     created_participants.append(p)
     print(f"  + Terdaftar: {nama} ({job}) -> QR Code: {p['qr_code']} [Status: {p['status']}]")
 
