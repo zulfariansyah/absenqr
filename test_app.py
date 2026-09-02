@@ -259,9 +259,11 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
             'institusi': 'ITB',
             'pekerjaan': 'Mahasiswa'
         })
-        self.assertEqual(dup_res.status_code, 400)
+        self.assertEqual(dup_res.status_code, 200)
         dup_data = json.loads(dup_res.data)
+        self.assertTrue(dup_data.get('is_duplicate'))
         self.assertEqual(dup_data['code'], 'DUPLICATE_NIM')
+        self.assertEqual(dup_data['data']['nim_nip'], '9990001')
 
         # 3. Uji Anti-Bot Honeypot: Jika field bot terisi, request ditolak
         bot_res = self.app.post('/api/register', json={
@@ -392,5 +394,34 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertIn('085711223344', csv_text)
         self.assertIn('087855667788', csv_text)
 
+    def test_12_proxy_prefix_support(self):
+        """Uji fungsionalitas subpath prefix /absen dan header proxy"""
+        # Request dengan header X-Forwarded-Prefix dari reverse proxy Nginx
+        headers = {
+            'X-Forwarded-Prefix': '/absen',
+            'X-Forwarded-Proto': 'https',
+            'Host': 'ppid.ft.unmul.ac.id'
+        }
+
+        # 1. Halaman utama harus menyertakan window.BASE_URL = "/absen"
+        res = self.app.get('/', headers=headers)
+        self.assertEqual(res.status_code, 200)
+        html = res.data.decode('utf-8')
+        self.assertIn('window.BASE_URL = "/absen"', html)
+        self.assertIn('href="/absen/"', html)
+
+        # 2. Redirect tanpa login ke /admin harus mengarahkan ke /absen/console
+        res_admin = self.app.get('/admin', headers=headers)
+        self.assertEqual(res_admin.status_code, 302)
+        self.assertIn('/absen/console', res_admin.location)
+
+        # 3. Endpoint network-info harus mengenali prefix publik
+        res_net = self.app.get('/api/network-info', headers=headers)
+        self.assertEqual(res_net.status_code, 200)
+        net_data = json.loads(res_net.data)
+        self.assertEqual(net_data['prefix'], '/absen')
+        self.assertIn('/absen', net_data['register_url_lan'])
+
 if __name__ == '__main__':
     unittest.main()
+

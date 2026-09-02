@@ -138,15 +138,15 @@
 <div id="successModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden overflow-y-auto p-3 sm:p-4 flex items-center justify-center">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-100 animate-in fade-in zoom-in duration-200 my-auto max-h-[92vh] flex flex-col overflow-hidden">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-5 sm:p-6 text-white text-center relative shrink-0">
+        <div id="modalHeaderBox" class="bg-gradient-to-r from-emerald-600 to-teal-600 p-5 sm:p-6 text-white text-center relative shrink-0">
             <button onclick="closeModalAndReset()" class="absolute top-4 right-4 text-white/80 hover:text-white transition">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
-            <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
+            <div id="modalHeaderIcon" class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
                 <i data-lucide="check-check" class="w-6 h-6 stroke-[3]"></i>
             </div>
-            <h3 class="text-xl font-extrabold">Pendaftaran Berhasil!</h3>
-            <p class="text-xs text-emerald-100 mt-1">Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.</p>
+            <h3 id="modalTitle" class="text-xl font-extrabold">Pendaftaran Berhasil!</h3>
+            <p id="modalSubtitle" class="text-xs text-emerald-100 mt-1">Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.</p>
         </div>
 
         <!-- Modal Body: QR Code & Warning Banner -->
@@ -179,6 +179,10 @@
 
             <!-- Participant Info Summary -->
             <div class="bg-slate-50 rounded-2xl p-4 text-xs text-left space-y-2 border border-slate-200">
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5 items-center">
+                    <span class="text-slate-500">Status Kehadiran:</span>
+                    <span id="modalStatusBadge" class="font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">⏳ Pendaftar</span>
+                </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
                     <span class="text-slate-500">Nama:</span>
                     <span id="modalNama" class="font-bold text-slate-900 text-right">-</span>
@@ -280,17 +284,22 @@
                 return;
             }
 
-            if (response.ok && res.success) {
+            if (res.success && res.data) {
                 const p = res.data;
                 currentQr = p.qr_code;
 
-                // Populate Modal
+                // Populate Modal Data
                 document.getElementById('modalQrCode').textContent = p.qr_code;
                 document.getElementById('modalNama').textContent = p.nama_lengkap;
                 document.getElementById('modalNim').textContent = p.nim_nip;
                 document.getElementById('modalHp').textContent = p.no_hp || '-';
                 document.getElementById('modalInstitusi').textContent = p.institusi;
                 document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
+
+                const statusBadge = document.getElementById('modalStatusBadge');
+                const headerBox = document.getElementById('modalHeaderBox');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalSubtitle = document.getElementById('modalSubtitle');
                 
                 const qrUrl = `${window.BASE_URL || ''}/api/qr/${p.qr_code}.png`;
                 document.getElementById('modalQrImage').src = qrUrl;
@@ -302,29 +311,45 @@
                 const ticketBtn = document.getElementById('btnOpenTicket');
                 ticketBtn.href = `${window.BASE_URL || ''}/ticket/${p.qr_code}`;
 
-                // Show modal & confetti
-                successModal.classList.remove('hidden');
-                confetti({
-                    particleCount: 80,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-                lucide.createIcons();
-            } else if (res.code === 'DUPLICATE_NIM' && res.data) {
-                // Friendly modal if already registered
-                Swal.fire({
-                    icon: 'info',
-                    title: 'No. Identitas Sudah Terdaftar',
-                    text: res.message,
-                    showCancelButton: true,
-                    confirmButtonColor: '#16a34a',
-                    confirmButtonText: 'Buka Tiket QR Saya',
-                    cancelButtonText: 'Tutup'
-                }).then((choice) => {
-                    if (choice.isConfirmed) {
-                        window.open(`${window.BASE_URL || ''}/ticket/${res.data.qr_code}`, '_blank');
+                if (res.is_duplicate || res.code === 'DUPLICATE_NIM') {
+                    // Tampilkan status & QR data yang sudah terdaftar sebelumnya
+                    modalTitle.textContent = 'Data Sudah Terdaftar!';
+                    modalSubtitle.innerHTML = `No. Identitas sudah terdaftar atas nama <strong>${p.nama_lengkap}</strong>.`;
+                    headerBox.className = "bg-gradient-to-r from-blue-600 to-indigo-600 p-5 sm:p-6 text-white text-center relative shrink-0";
+                    
+                    if (p.status === 'peserta') {
+                        statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        statusBadge.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline mr-1 text-emerald-600"></i>Sudah Hadir (Peserta)';
+                    } else {
+                        statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300";
+                        statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>Belum Hadir (Pendaftar)';
                     }
-                });
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Data Ditemukan',
+                        text: `Nomor identitas "${p.nim_nip}" sudah pernah terdaftar atas nama ${p.nama_lengkap}. Menampilkan QR Code tiket Anda.`,
+                        confirmButtonColor: '#2563eb'
+                    });
+                } else {
+                    // Pendaftaran Peserta Baru
+                    modalTitle.textContent = 'Pendaftaran Berhasil!';
+                    modalSubtitle.innerHTML = 'Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.';
+                    headerBox.className = "bg-gradient-to-r from-emerald-600 to-teal-600 p-5 sm:p-6 text-white text-center relative shrink-0";
+                    
+                    statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300";
+                    statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>Belum Hadir (Pendaftar)';
+
+                    confetti({
+                        particleCount: 80,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+
+                // Tampilkan Modal
+                successModal.classList.remove('hidden');
+                lucide.createIcons();
             } else {
                 Swal.fire({
                     icon: 'error',

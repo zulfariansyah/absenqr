@@ -377,15 +377,16 @@ def api_register():
     institusi = html.escape(raw_institusi)
     pekerjaan = html.escape(raw_pekerjaan)
 
-    # 6. Deteksi Duplikasi Nomor Identitas
+    # 6. Deteksi Duplikasi Nomor Identitas: Jika sudah ada, langsung kembalikan data pendaftaran sebelumnya
     existing = database.get_participant_by_nim(nim_nip)
     if existing:
         return jsonify({
-            'success': False,
+            'success': True,
+            'is_duplicate': True,
             'code': 'DUPLICATE_NIM',
-            'message': f'No. Identitas "{nim_nip}" sudah terdaftar atas nama {existing["nama_lengkap"]}. QR Code tiket sudah pernah dibuat sebelumnya.',
+            'message': f'No. Identitas "{nim_nip}" sudah pernah terdaftar atas nama {existing["nama_lengkap"]}.',
             'data': existing
-        }), 400
+        }), 200
         
     try:
         participant = database.register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan)
