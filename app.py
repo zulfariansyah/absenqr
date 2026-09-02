@@ -98,6 +98,13 @@ def inject_settings():
     settings = database.get_all_settings()
     local_ip = get_local_ip()
     port = ACTIVE_PORT
+    
+    # Pastikan file logo diakses melalui subpath prefix (misal /absenpeserta/static/uploads/...)
+    logo_val = settings.get('event_logo', '')
+    if logo_val and logo_val.startswith('/static/'):
+        prefix = request.script_root or ''
+        settings['event_logo'] = f"{prefix}{logo_val}"
+
     return {
         'event_settings': settings,
         'local_ip': local_ip,
