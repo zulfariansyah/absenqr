@@ -40,6 +40,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        window.BASE_URL = "{{ request.script_root }}";
+        if (!window.BASE_URL || window.BASE_URL === "undefined") {
+            window.BASE_URL = "";
+        }
+    </script>
 
     <style>
         body {
@@ -398,12 +404,12 @@
                         <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Ekspor & Impor Data</div>
                         <p class="text-xs text-slate-300">Backup atau restore data seminar dalam format Excel / CSV</p>
                         <div class="space-y-2 pt-1">
-                            <a id="exportCurrentBtn" href="/api/export-csv?status=pendaftar"
+                            <a id="exportCurrentBtn" href="{{ request.script_root }}/api/export-csv?status=pendaftar"
                                 class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                                 <span id="exportBtnLabel">Export CSV Pendaftar</span>
                             </a>
-                            <a href="/api/export-csv"
+                            <a href="{{ request.script_root }}/api/export-csv"
                                 class="w-full py-2 px-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-2">
                                 <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                 <span>Export Semua Data</span>
@@ -917,7 +923,7 @@
             </p>
 
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
-                <img id="lanQrImage" src="/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
+                <img id="lanQrImage" src="{{ request.script_root }}/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
                 <div class="mt-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 break-all" id="lanUrlText">
                     Memuat URL...
                 </div>
@@ -1050,7 +1056,7 @@
                 tableSubtitle.textContent = 'Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.';
                 colWaktuHeader.textContent = 'Waktu Daftar';
                 
-                exportCurrentBtn.href = '/api/export-csv?status=pendaftar';
+                exportCurrentBtn.href = `${window.BASE_URL}/api/export-csv?status=pendaftar`;
                 exportBtnLabel.textContent = 'Export CSV Pendaftar';
             } else {
                 tabPesertaBtn.className = 'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left text-xs sm:text-sm font-bold transition-all bg-emerald-50 text-emerald-900 border border-emerald-200 shadow-sm';
@@ -1060,7 +1066,7 @@
                 tableSubtitle.textContent = 'Menampilkan data orang yang telah hadir melalui pemindaian QR Code.';
                 colWaktuHeader.textContent = 'Waktu Hadir';
                 
-                exportCurrentBtn.href = '/api/export-csv?status=peserta';
+                exportCurrentBtn.href = `${window.BASE_URL}/api/export-csv?status=peserta`;
                 exportBtnLabel.textContent = 'Export CSV Peserta';
             }
 
@@ -1165,7 +1171,7 @@
             if (!cleanedCode) return;
 
             try {
-                const response = await fetch('/api/scan', {
+                const response = await fetch(`${window.BASE_URL}/api/scan`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ qr_code: cleanedCode })
@@ -1318,7 +1324,7 @@
 
         async function updateStats() {
             try {
-                const res = await fetch('/api/stats');
+                const res = await fetch(`${window.BASE_URL}/api/stats`);
                 const data = await res.json();
                 if (data.success) {
                     const s = data.stats;
@@ -1357,7 +1363,7 @@
             lucide.createIcons();
 
             try {
-                const res = await fetch(`/api/participants?${params.toString()}`);
+                const res = await fetch(`${window.BASE_URL}/api/participants?${params.toString()}`);
                 const json = await res.json();
 
                 if (json.success && json.data.length > 0) {
@@ -1458,7 +1464,7 @@
             if (!confirm.isConfirmed) return;
 
             try {
-                const res = await fetch(`/api/participant/${id}/toggle`, { method: 'POST' });
+                const res = await fetch(`${window.BASE_URL}/api/participant/${id}/toggle`, { method: 'POST' });
                 const json = await res.json();
                 if (json.success) {
                     loadParticipantsData();
@@ -1485,7 +1491,7 @@
             if (!confirm.isConfirmed) return;
 
             try {
-                const res = await fetch(`/api/participant/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${window.BASE_URL}/api/participant/${id}`, { method: 'DELETE' });
                 const json = await res.json();
                 if (json.success) {
                     loadParticipantsData();
@@ -1514,7 +1520,7 @@
             lucide.createIcons();
 
             try {
-                const res = await fetch('/api/admin/users');
+                const res = await fetch(`${window.BASE_URL}/api/admin/users`);
                 const json = await res.json();
 
                 if (res.ok && json.success && json.data) {
@@ -1592,7 +1598,7 @@
                 const newPass = document.getElementById('resetNewPass').value.trim();
 
                 try {
-                    const res = await fetch(`/api/admin/users/${adminId}/reset-password`, {
+                    const res = await fetch(`${window.BASE_URL}/api/admin/users/${adminId}/reset-password`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ new_password: newPass })
@@ -1660,11 +1666,11 @@
                 const password = document.getElementById('modalAdminPassword').value.trim();
 
                 try {
-                    let url = '/api/admin/users';
+                    let url = `${window.BASE_URL}/api/admin/users`;
                     let payload = { nama, username, role };
 
                     if (id) {
-                        url = `/api/admin/users/${id}/edit`;
+                        url = `${window.BASE_URL}/api/admin/users/${id}/edit`;
                     } else {
                         if (!password) {
                             Swal.fire({ icon: 'warning', title: 'Password Wajib', text: 'Masukkan password awal!', confirmButtonColor: '#9333ea' });
@@ -1696,6 +1702,7 @@
                             text: json.message || 'Terjadi kesalahan.',
                             confirmButtonColor: '#9333ea'
                         });
+                        loadAdminUsersData();
                     }
                 } catch (err) {
                     console.error(err);
@@ -1719,7 +1726,7 @@
             if (!confirm.isConfirmed) return;
 
             try {
-                const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${window.BASE_URL}/api/admin/users/${id}`, { method: 'DELETE' });
                 const json = await res.json();
                 if (res.ok && json.success) {
                     Swal.fire({
@@ -1790,7 +1797,7 @@
             if (!confirm.isConfirmed) return;
 
             try {
-                const res = await fetch('/api/settings/reset-logo', { method: 'POST' });
+                const res = await fetch(`${window.BASE_URL}/api/settings/reset-logo`, { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('inputEventLogo').value = '';
@@ -1823,7 +1830,7 @@
                 saveSettingsBtnText.textContent = 'Menyimpan...';
 
                 try {
-                    const res = await fetch('/api/settings', {
+                    const res = await fetch(`${window.BASE_URL}/api/settings`, {
                         method: 'POST',
                         body: formData
                     });
@@ -1865,7 +1872,7 @@
                 const newPassword = document.getElementById('newPassword').value.trim();
 
                 try {
-                    const res = await fetch('/api/admin/change-credentials', {
+                    const res = await fetch(`${window.BASE_URL}/api/admin/change-credentials`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1904,14 +1911,14 @@
             document.getElementById('qrModalCode').textContent = qrCode;
             document.getElementById('qrModalName').textContent = name;
             
-            const qrUrl = `/api/qr/${qrCode}.png`;
+            const qrUrl = `${window.BASE_URL}/api/qr/${qrCode}.png`;
             document.getElementById('qrModalImage').src = qrUrl;
             
             const downloadBtn = document.getElementById('qrModalDownload');
             downloadBtn.href = qrUrl;
             downloadBtn.download = `QR_${qrCode}_${name.replace(/\s+/g, '_')}.png`;
 
-            document.getElementById('qrModalTicketLink').href = `/ticket/${qrCode}`;
+            document.getElementById('qrModalTicketLink').href = `${window.BASE_URL}/ticket/${qrCode}`;
 
             document.getElementById('qrModal').classList.remove('hidden');
             lucide.createIcons();
@@ -1923,10 +1930,10 @@
 
         async function openLanModal() {
             try {
-                const res = await fetch('/api/network-info');
+                const res = await fetch(`${window.BASE_URL}/api/network-info`);
                 const data = await res.json();
                 document.getElementById('lanUrlText').textContent = data.register_url_lan;
-                document.getElementById('lanQrImage').src = `/api/qr-url.png?data=${encodeURIComponent(data.register_url_lan)}`;
+                document.getElementById('lanQrImage').src = `${window.BASE_URL}/api/qr-url.png?data=${encodeURIComponent(data.register_url_lan)}`;
                 document.getElementById('lanModal').classList.remove('hidden');
                 lucide.createIcons();
             } catch (e) {
@@ -1984,7 +1991,7 @@
                 btnText.textContent = 'Mengimpor Data...';
 
                 try {
-                    const res = await fetch('/api/import-csv', {
+                    const res = await fetch(`${window.BASE_URL}/api/import-csv`, {
                         method: 'POST',
                         body: formData
                     });
@@ -2048,8 +2055,8 @@
             });
 
             if (confirm.isConfirmed) {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/console';
+                await fetch(`${window.BASE_URL}/api/logout`, { method: 'POST' });
+                window.location.href = `${window.BASE_URL}/console`;
             }
         }
 
