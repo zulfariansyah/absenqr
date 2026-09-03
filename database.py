@@ -520,7 +520,7 @@ def get_participants(status=None, search=None, pekerjaan=None):
     return rows
 
 def get_stats():
-    """Mengambil ringkasan statistik kehadiran seminar"""
+    """Mengambil ringkasan statistik kehadiran seminar dan per rincian pekerjaan peserta hadir"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -532,6 +532,11 @@ def get_stats():
     
     cursor.execute("SELECT COUNT(*) FROM participants WHERE status = 'peserta'")
     peserta_count = cursor.fetchone()[0]
+
+    # Rincian peserta hadir per pekerjaan/profesi
+    cursor.execute("SELECT pekerjaan, COUNT(*) FROM participants WHERE status = 'peserta' GROUP BY pekerjaan")
+    job_rows = cursor.fetchall()
+    job_counts = {row['pekerjaan']: row[1] for row in job_rows}
     
     conn.close()
     
@@ -541,5 +546,12 @@ def get_stats():
         "total": total,
         "pendaftar": pendaftar_count,
         "peserta": peserta_count,
-        "attendance_rate": attendance_rate
+        "attendance_rate": attendance_rate,
+        "peserta_by_job": {
+            "mhs_s1": job_counts.get("Mahasiswa S1", 0) + job_counts.get("Mahasiswa", 0),
+            "mhs_s2": job_counts.get("Mahasiswa S2", 0),
+            "dosen": job_counts.get("Dosen", 0),
+            "praktisi": job_counts.get("Praktisi", 0),
+            "lainnya": job_counts.get("Lainnya", 0)
+        }
     }

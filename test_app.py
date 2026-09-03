@@ -151,6 +151,7 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertEqual(stats['pendaftar'], 1)
         self.assertEqual(stats['peserta'], 1)
         self.assertEqual(stats['attendance_rate'], 50.0)
+        self.assertEqual(stats['peserta_by_job']['praktisi'], 1)
 
     def test_06_qr_image_and_export(self):
         """Uji download gambar QR dan export CSV"""

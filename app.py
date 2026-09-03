@@ -401,11 +401,11 @@ def api_register():
             'message': 'Nama Institusi harus berisi antara 2 hingga 120 karakter!'
         }), 400
         
-    valid_jobs = ['Mahasiswa', 'Dosen', 'Praktisi', 'Lainnya']
+    valid_jobs = ['Mahasiswa S1', 'Mahasiswa S2', 'Mahasiswa', 'Dosen', 'Praktisi', 'Lainnya']
     if raw_pekerjaan not in valid_jobs:
         return jsonify({
             'success': False,
-            'message': f'Pekerjaan harus salah satu dari: {", ".join(valid_jobs)}'
+            'message': f'Pekerjaan harus salah satu dari: Mahasiswa S1, Mahasiswa S2, Dosen, Praktisi, Lainnya'
         }), 400
 
     # 5. XSS Sanitization: Escape karakter khusus HTML (<, >, &, ", ')
@@ -538,9 +538,9 @@ def api_edit_participant(participant_id):
     if raw_no_hp and (len(raw_no_hp) < 8 or len(raw_no_hp) > 20):
         return jsonify({'success': False, 'message': 'Nomor HP / WA harus berisi antara 8 hingga 20 karakter!'}), 400
 
-    valid_jobs = ['Mahasiswa', 'Dosen', 'Praktisi', 'Lainnya']
+    valid_jobs = ['Mahasiswa S1', 'Mahasiswa S2', 'Mahasiswa', 'Dosen', 'Praktisi', 'Lainnya']
     if raw_pekerjaan not in valid_jobs:
-        return jsonify({'success': False, 'message': f'Pekerjaan harus salah satu dari: {", ".join(valid_jobs)}'}), 400
+        return jsonify({'success': False, 'message': 'Pekerjaan harus salah satu dari: Mahasiswa S1, Mahasiswa S2, Dosen, Praktisi, Lainnya'}), 400
 
     nim_nip = html.escape(raw_nim)
     nama_lengkap = html.escape(raw_nama)

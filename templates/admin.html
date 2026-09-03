@@ -404,6 +404,48 @@
                                 <span id="badgeSubPeserta" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-slate-200 text-slate-800">0</span>
                             </button>
                         </nav>
+
+                        <!-- Breakdown Peserta Hadir per Profesi -->
+                        <div class="mt-3 pt-3 border-t border-slate-100">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5 text-emerald-800 font-extrabold">
+                                    <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                    Peserta Hadir per Profesi:
+                                </span>
+                            </div>
+                            <div class="space-y-1 text-xs">
+                                <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+                                    <span class="text-slate-600 font-medium flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span> Mahasiswa S1
+                                    </span>
+                                    <span id="statJobMhsS1" class="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">0</span>
+                                </div>
+                                <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+                                    <span class="text-slate-600 font-medium flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Mahasiswa S2
+                                    </span>
+                                    <span id="statJobMhsS2" class="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">0</span>
+                                </div>
+                                <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+                                    <span class="text-slate-600 font-medium flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Dosen
+                                    </span>
+                                    <span id="statJobDosen" class="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">0</span>
+                                </div>
+                                <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+                                    <span class="text-slate-600 font-medium flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Praktisi
+                                    </span>
+                                    <span id="statJobPraktisi" class="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">0</span>
+                                </div>
+                                <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 transition">
+                                    <span class="text-slate-600 font-medium flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-purple-500"></span> Lainnya
+                                    </span>
+                                    <span id="statJobLainnya" class="font-extrabold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Export and Import Utility Box -->
@@ -456,7 +498,8 @@
 
                             <select id="filterPekerjaan" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white">
                                 <option value="Semua">Semua Profesi</option>
-                                <option value="Mahasiswa">Mahasiswa</option>
+                                <option value="Mahasiswa S1">Mahasiswa S1</option>
+                                <option value="Mahasiswa S2">Mahasiswa S2</option>
                                 <option value="Dosen">Dosen</option>
                                 <option value="Praktisi">Praktisi</option>
                                 <option value="Lainnya">Lainnya</option>
@@ -1004,7 +1047,8 @@
                         </label>
                         <select id="editPekerjaan" required
                             class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option value="Mahasiswa">Mahasiswa</option>
+                            <option value="Mahasiswa S1">Mahasiswa S1</option>
+                            <option value="Mahasiswa S2">Mahasiswa S2</option>
                             <option value="Dosen">Dosen</option>
                             <option value="Praktisi">Praktisi</option>
                             <option value="Lainnya">Lainnya</option>
@@ -1467,6 +1511,15 @@
 
                     document.getElementById('badgeSubPendaftar').textContent = s.pendaftar;
                     document.getElementById('badgeSubPeserta').textContent = s.peserta;
+
+                    if (s.peserta_by_job) {
+                        const j = s.peserta_by_job;
+                        if (document.getElementById('statJobMhsS1')) document.getElementById('statJobMhsS1').textContent = j.mhs_s1 || 0;
+                        if (document.getElementById('statJobMhsS2')) document.getElementById('statJobMhsS2').textContent = j.mhs_s2 || 0;
+                        if (document.getElementById('statJobDosen')) document.getElementById('statJobDosen').textContent = j.dosen || 0;
+                        if (document.getElementById('statJobPraktisi')) document.getElementById('statJobPraktisi').textContent = j.praktisi || 0;
+                        if (document.getElementById('statJobLainnya')) document.getElementById('statJobLainnya').textContent = j.lainnya || 0;
+                    }
                 }
             } catch (e) {
                 console.error('Error stats', e);
