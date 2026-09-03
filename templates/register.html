@@ -7,8 +7,8 @@
     <!-- Header Section -->
     <div class="text-center mb-8">
         {% if event_settings.event_logo %}
-            <div class="mb-4">
-                <img src="{{ event_settings.event_logo }}" alt="Logo Acara" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl mx-auto object-contain bg-white p-2 border border-slate-200 shadow-md">
+            <div class="mb-5 flex justify-center">
+                <img src="{{ event_settings.event_logo }}" alt="Logo Acara" class="max-h-20 sm:max-h-24 max-w-[260px] sm:max-w-[340px] w-auto h-auto object-contain">
             </div>
         {% endif %}
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3 shadow-sm border border-emerald-200">
