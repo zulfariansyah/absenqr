@@ -119,9 +119,11 @@
                     <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5">
                         <i data-lucide="megaphone" class="w-4 h-4"></i>
                     </div>
-                    <div>
+                    <div class="flex-1">
                         <span class="font-extrabold text-blue-950 uppercase block">Informasi Acara:</span>
-                        <p class="mt-1 leading-relaxed whitespace-pre-line font-medium">{{ event_settings.event_info }}</p>
+                        <div class="mt-1 leading-relaxed font-medium">
+                            {{ event_settings.event_info | autolink }}
+                        </div>
                     </div>
                 </div>
                 {% endif %}

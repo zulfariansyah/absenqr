@@ -1,9 +1,11 @@
 import os
 import io
 import csv
+import re
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, send_file, Response, session, redirect, url_for
+from markupsafe import Markup, escape
 import qrcode
 from qrcode.image.pil import PilImage
 
@@ -12,6 +14,27 @@ from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+
+@app.template_filter('autolink')
+def autolink_filter(text):
+    """Mengubah teks URL otomatis menjadi hyperlink dengan target _blank yang aman"""
+    if not text:
+        return ""
+    escaped_text = str(escape(text))
+    url_pattern = re.compile(r'(https?://[^\s<"]+|www\.[^\s<"]+)', re.IGNORECASE)
+    
+    def make_link(match):
+        url = match.group(0)
+        trailing = ''
+        while url and url[-1] in '.,!?:;)':
+            trailing = url[-1] + trailing
+            url = url[:-1]
+        href = url if url.lower().startswith(('http://', 'https://')) else f'https://{url}'
+        return f'<a href="{href}" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:text-blue-900 font-bold underline inline-flex items-center gap-1 break-all transition hover:opacity-90">{url} <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 inline-block shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>{trailing}'
+
+    linked = url_pattern.sub(make_link, escaped_text)
+    linked = linked.replace('\n', '<br>')
+    return Markup(linked)
 # Dukungan Reverse Proxy (Nginx / Apache subpath / header X-Forwarded-Prefix & Proto)
 class PrefixMiddleware:
     def __init__(self, wsgi_app, prefix='/absenpeserta'):
