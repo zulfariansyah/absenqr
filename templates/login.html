@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Console - {{ event_settings.event_name }}</title>
+    <title>Login - {{ event_settings.title_console if event_settings.title_console else ('Console Admin - ' + event_settings.event_name) }}</title>
+    <!-- Favicon -->
+    {% if event_settings.event_favicon %}
+    <link rel="icon" href="{{ event_settings.event_favicon }}">
+    <link rel="apple-touch-icon" href="{{ event_settings.event_favicon }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    {% endif %}
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

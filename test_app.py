@@ -173,23 +173,31 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertTrue('Budi' in csv_res.data.decode('utf-8'))
 
     def test_07_event_settings(self):
-        """Uji pengelolaan nama acara, informasi tambahan, dan logo"""
+        """Uji pengelolaan nama acara, title tag, favicon, informasi tambahan, dan logo"""
         self.login_admin()
 
-        # Update event name and custom info
+        # Update event name, title tags, and custom info
         update_res = self.app.post('/api/settings', data={
             'event_name': 'Workshop AI Vision 2026',
+            'title_peserta': 'Registrasi Workshop AI 2026',
+            'title_console': 'Console Workshop AI 2026',
             'event_info': 'Grup WA: https://chat.whatsapp.com/test'
         })
         self.assertEqual(update_res.status_code, 200)
         new_settings = json.loads(update_res.data)['settings']
         self.assertEqual(new_settings['event_name'], 'Workshop AI Vision 2026')
+        self.assertEqual(new_settings['title_peserta'], 'Registrasi Workshop AI 2026')
+        self.assertEqual(new_settings['title_console'], 'Console Workshop AI 2026')
         self.assertEqual(new_settings['event_info'], 'Grup WA: https://chat.whatsapp.com/test')
 
-        # Reset logo
-        reset_res = self.app.post('/api/settings/reset-logo')
-        self.assertEqual(reset_res.status_code, 200)
-        self.assertEqual(json.loads(reset_res.data)['settings']['event_logo'], '')
+        # Reset logo & favicon
+        reset_logo_res = self.app.post('/api/settings/reset-logo')
+        self.assertEqual(reset_logo_res.status_code, 200)
+        self.assertEqual(json.loads(reset_logo_res.data)['settings']['event_logo'], '')
+
+        reset_fav_res = self.app.post('/api/settings/reset-favicon')
+        self.assertEqual(reset_fav_res.status_code, 200)
+        self.assertEqual(json.loads(reset_fav_res.data)['settings']['event_favicon'], '')
 
     def test_08_superadmin_user_management(self):
         """Uji 5 user default, Super Admin mereset password admin lain, dan pembatasan hak akses"""

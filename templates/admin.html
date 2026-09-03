@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Console Admin - {{ event_settings.event_name }}</title>
+    <title>{{ event_settings.title_console if event_settings.title_console else ('Console Admin - ' + event_settings.event_name) }}</title>
+    <!-- Favicon -->
+    {% if event_settings.event_favicon %}
+    <link rel="icon" href="{{ event_settings.event_favicon }}">
+    <link rel="apple-touch-icon" href="{{ event_settings.event_favicon }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    {% endif %}
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -598,7 +605,7 @@
                 <form id="settingsForm" class="p-6 sm:p-8 space-y-6" enctype="multipart/form-data">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Column 1: Input Fields -->
-                        <div class="space-y-6">
+                        <div class="space-y-5">
                             <!-- Event Name -->
                             <div>
                                 <label for="inputEventName" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
@@ -609,30 +616,33 @@
                                     value="{{ event_settings.event_name }}"
                                     placeholder="Contoh: Seminar Nasional AI & Data Science 2026"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm">
-                                <p class="text-xs text-slate-500 mt-1">Nama ini akan tampil di judul website, formulir pendaftaran, tiket, dan laporan.</p>
+                                <p class="text-xs text-slate-500 mt-1">Nama ini akan tampil di badan formulir pendaftaran, tiket, dan laporan.</p>
                             </div>
 
-                            <!-- Event Logo File Upload -->
+                            <!-- Title Tag Absen Peserta -->
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                    <i data-lucide="image" class="w-4 h-4 text-emerald-600"></i>
-                                    Logo Resmi Acara
+                                <label for="inputTitlePeserta" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4 text-emerald-600"></i>
+                                    Title Tag: Formulir Absen Peserta (Tab Browser)
                                 </label>
-                                <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventLogo').click()">
-                                    <input type="file" id="inputEventLogo" name="event_logo" accept="image/*" class="hidden" onchange="handleLogoPreview(this)">
-                                    <div class="w-12 h-12 rounded-xl bg-white text-slate-400 flex items-center justify-center mx-auto mb-2 border border-slate-200 shadow-sm">
-                                        <i data-lucide="upload-cloud" class="w-6 h-6 text-emerald-600"></i>
-                                    </div>
-                                    <p class="text-xs font-semibold text-slate-700">Klik untuk memilih file logo baru</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Format didukung: PNG, JPG, JPEG, SVG, WEBP (Maksimal 5MB)</p>
-                                </div>
+                                <input type="text" id="inputTitlePeserta" name="title_peserta"
+                                    value="{{ event_settings.title_peserta if event_settings.title_peserta else '' }}"
+                                    placeholder="Contoh: Registrasi Peserta - {{ event_settings.event_name }}"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                                <p class="text-xs text-slate-500 mt-1">Judul yang muncul pada tab browser di halaman pengisian formulir & tiket peserta.</p>
+                            </div>
 
-                                <div class="flex items-center justify-between mt-2">
-                                    <span id="logoFileName" class="text-xs text-slate-500 italic">Belum ada file baru dipilih</span>
-                                    <button type="button" onclick="resetToDefaultLogo()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
-                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Gunakan Logo Bawaan
-                                    </button>
-                                </div>
+                            <!-- Title Tag Console Peserta / Admin -->
+                            <div>
+                                <label for="inputTitleConsole" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-600"></i>
+                                    Title Tag: Console Peserta / Admin (Tab Browser)
+                                </label>
+                                <input type="text" id="inputTitleConsole" name="title_console"
+                                    value="{{ event_settings.title_console if event_settings.title_console else '' }}"
+                                    placeholder="Contoh: Console Admin - {{ event_settings.event_name }}"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                                <p class="text-xs text-slate-500 mt-1">Judul yang muncul pada tab browser di halaman login, scan QR, dan manajemen peserta.</p>
                             </div>
 
                             <!-- Event Custom Info (Muncul saat pendaftaran berhasil & QR muncul) -->
@@ -642,37 +652,92 @@
                                     Informasi Tambahan / Pengumuman Peserta
                                 </label>
                                 <textarea id="inputEventInfo" name="event_info" rows="3"
-                                    placeholder="Contoh: Silakan bergabung ke Grup WhatsApp peserta melalui tautan: https://chat.whatsapp.com/... atau bawa kartu identitas saat hari H."
+                                    placeholder="Contoh: Silakan bergabung ke Grup WhatsApp: https://chat.whatsapp.com/... atau bawa identitas saat hari H."
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">{{ event_settings.event_info if event_settings.event_info else '' }}</textarea>
-                                <p class="text-xs text-slate-500 mt-1">Informasi ini akan langsung ditampilkan di jendela popup QR Code setelah peserta selesai mendaftar.</p>
+                                <p class="text-xs text-slate-500 mt-1">Otomatis diubah menjadi tautan/link yang dapat dikklik membuka tab baru jika berisi URL.</p>
                             </div>
                         </div>
 
-                        <!-- Column 2: Live Preview Card -->
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                <i data-lucide="eye" class="w-4 h-4 text-emerald-600"></i>
-                                Pratinjau Tampilan (Live Preview)
-                            </label>
-                            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white border border-slate-700 shadow-lg text-center space-y-3">
-                                <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur p-2 mx-auto flex items-center justify-center border border-white/20 shadow-md">
-                                    <img id="previewLogoImg" src="{{ event_settings.event_logo if event_settings.event_logo else '' }}" alt="Preview Logo" class="w-full h-full object-contain {% if not event_settings.event_logo %}hidden{% endif %}">
-                                    <div id="previewDefaultIcon" class="{% if event_settings.event_logo %}hidden{% endif %} text-white flex items-center justify-center">
-                                        <i data-lucide="qr-code" class="w-8 h-8 text-emerald-400"></i>
+                        <!-- Column 2: Uploads & Live Preview Card -->
+                        <div class="space-y-5">
+                            <!-- Favicon Upload -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="bookmark" class="w-4 h-4 text-emerald-600"></i>
+                                    FavIcon Tab Browser (.ico, .png, .svg, .webp)
+                                </label>
+                                <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-3.5 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventFavicon').click()">
+                                    <input type="file" id="inputEventFavicon" name="event_favicon" accept=".ico,.png,.svg,.webp,.jpg,.jpeg,image/*" class="hidden" onchange="handleFaviconPreview(this)">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+                                            <img id="previewFaviconSmall" src="{{ event_settings.event_favicon if event_settings.event_favicon else '' }}" alt="Favicon" class="w-7 h-7 object-contain {% if not event_settings.event_favicon %}hidden{% endif %}">
+                                            <i id="previewFaviconDefaultIcon" data-lucide="globe" class="w-5 h-5 text-emerald-600 {% if event_settings.event_favicon %}hidden{% endif %}"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <p class="text-xs font-semibold text-slate-800">Klik untuk unggah FavIcon baru</p>
+                                            <p class="text-[11px] text-slate-400">Tampil di sebelah judul tab browser (Rekomendasi rasio 1:1)</p>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="flex items-center justify-between mt-1.5 px-1">
+                                    <span id="faviconFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_favicon %}Favicon kustom aktif{% else %}Favicon default aktif{% endif %}</span>
+                                    <button type="button" onclick="resetToDefaultFavicon()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Favicon
+                                    </button>
+                                </div>
+                            </div>
 
-                                <div>
-                                    <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider rounded-full">
-                                        E-Ticket Absensi
-                                    </span>
-                                    <h3 id="previewEventName" class="text-lg font-black tracking-tight mt-1.5">{{ event_settings.event_name }}</h3>
-                                    <p class="text-xs text-slate-300 mt-0.5">Sistem Absensi & Registrasi QR Code</p>
+                            <!-- Event Logo File Upload -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="image" class="w-4 h-4 text-emerald-600"></i>
+                                    Logo Resmi Acara (Header & Tiket)
+                                </label>
+                                <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-3.5 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventLogo').click()">
+                                    <input type="file" id="inputEventLogo" name="event_logo" accept="image/*" class="hidden" onchange="handleLogoPreview(this)">
+                                    <div class="w-10 h-10 rounded-xl bg-white text-slate-400 flex items-center justify-center mx-auto mb-1.5 border border-slate-200 shadow-sm">
+                                        <i data-lucide="upload-cloud" class="w-5 h-5 text-emerald-600"></i>
+                                    </div>
+                                    <p class="text-xs font-semibold text-slate-700">Klik untuk memilih file logo baru</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Format didukung: PNG, JPG, JPEG, SVG, WEBP (Maksimal 5MB)</p>
                                 </div>
 
-                                <div class="pt-3 border-t border-slate-700/80 text-[11px] text-slate-400 flex items-center justify-center gap-1">
-                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
-                                    <span>Logo & nama acara langsung tersinkronisasi</span>
+                                <div class="flex items-center justify-between mt-1.5 px-1">
+                                    <span id="logoFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_logo %}Logo kustom aktif{% else %}Belum ada file baru dipilih{% endif %}</span>
+                                    <button type="button" onclick="resetToDefaultLogo()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Logo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Live Preview Card -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="eye" class="w-4 h-4 text-emerald-600"></i>
+                                    Pratinjau Tampilan Tab & Branding (Live Preview)
+                                </label>
+                                <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-5 text-white border border-slate-700 shadow-lg space-y-3">
+                                    <!-- Simulated Browser Tab -->
+                                    <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800 flex items-center gap-2">
+                                        <div class="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                            <img id="previewTabFavicon" src="{{ event_settings.event_favicon if event_settings.event_favicon else '' }}" alt="Tab Icon" class="w-4 h-4 object-contain {% if not event_settings.event_favicon %}hidden{% endif %}">
+                                            <span id="previewTabDefaultFavicon" class="text-[11px] {% if event_settings.event_favicon %}hidden{% endif %}">📋</span>
+                                        </div>
+                                        <div class="text-[11px] font-medium text-slate-200 truncate flex-1 font-mono" id="previewTabTitle">
+                                            {{ event_settings.title_peserta if event_settings.title_peserta else ('Registrasi Peserta - ' + event_settings.event_name) }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Simulated Logo & Header -->
+                                    <div class="text-center pt-2">
+                                        <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur p-2 mx-auto flex items-center justify-center border border-white/20 shadow-md mb-2">
+                                            <img id="previewLogoImg" src="{{ event_settings.event_logo if event_settings.event_logo else '' }}" alt="Preview Logo" class="w-full h-full object-contain {% if not event_settings.event_logo %}hidden{% endif %}">
+                                            <div id="previewDefaultIcon" class="{% if event_settings.event_logo %}hidden{% endif %} text-white flex items-center justify-center">
+                                                <i data-lucide="qr-code" class="w-7 h-7 text-emerald-400"></i>
+                                            </div>
+                                        </div>
+                                        <h3 id="previewEventName" class="text-sm sm:text-base font-black tracking-tight text-white">{{ event_settings.event_name }}</h3>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2149,14 +2214,97 @@
         // =========================================================================
         const inputEventName = document.getElementById('inputEventName');
         const previewEventName = document.getElementById('previewEventName');
+        const inputTitlePeserta = document.getElementById('inputTitlePeserta');
+        const previewTabTitle = document.getElementById('previewTabTitle');
         const settingsForm = document.getElementById('settingsForm');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const saveSettingsBtnText = document.getElementById('saveSettingsBtnText');
 
         if (inputEventName && previewEventName) {
             inputEventName.addEventListener('input', () => {
-                previewEventName.textContent = inputEventName.value.trim() || 'Nama Acara Seminar';
+                const name = inputEventName.value.trim() || 'Nama Acara Seminar';
+                previewEventName.textContent = name;
+                if (!inputTitlePeserta.value.trim()) {
+                    previewTabTitle.textContent = `Registrasi Peserta - ${name}`;
+                }
             });
+        }
+
+        if (inputTitlePeserta && previewTabTitle) {
+            inputTitlePeserta.addEventListener('input', () => {
+                previewTabTitle.textContent = inputTitlePeserta.value.trim() || `Registrasi Peserta - ${inputEventName.value.trim() || 'Seminar'}`;
+            });
+        }
+
+        function handleFaviconPreview(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                document.getElementById('faviconFileName').textContent = `File: ${file.name}`;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const smallImg = document.getElementById('previewFaviconSmall');
+                    const tabImg = document.getElementById('previewTabFavicon');
+                    const defaultIcon = document.getElementById('previewFaviconDefaultIcon');
+                    const defaultTabFavicon = document.getElementById('previewTabDefaultFavicon');
+
+                    smallImg.src = e.target.result;
+                    smallImg.classList.remove('hidden');
+                    defaultIcon.classList.add('hidden');
+
+                    tabImg.src = e.target.result;
+                    tabImg.classList.remove('hidden');
+                    defaultTabFavicon.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function resetToDefaultFavicon() {
+            const confirm = await Swal.fire({
+                title: 'Reset FavIcon Acara?',
+                text: 'FavIcon tab browser akan dikembalikan ke icon default sistem.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`${window.BASE_URL}/api/settings/reset-favicon`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('inputEventFavicon').value = '';
+                    document.getElementById('faviconFileName').textContent = 'Favicon default aktif';
+                    
+                    const smallImg = document.getElementById('previewFaviconSmall');
+                    const tabImg = document.getElementById('previewTabFavicon');
+                    const defaultIcon = document.getElementById('previewFaviconDefaultIcon');
+                    const defaultTabFavicon = document.getElementById('previewTabDefaultFavicon');
+
+                    smallImg.src = '';
+                    smallImg.classList.add('hidden');
+                    defaultIcon.classList.remove('hidden');
+
+                    tabImg.src = '';
+                    tabImg.classList.add('hidden');
+                    defaultTabFavicon.classList.remove('hidden');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'FavIcon Direset',
+                        text: 'FavIcon berhasil dikembalikan ke default.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         function handleLogoPreview(input) {

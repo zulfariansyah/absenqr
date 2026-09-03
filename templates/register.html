@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Pendaftaran Peserta - {{ event_settings.event_name }}{% endblock %}
+{% block title %}{{ event_settings.title_peserta if event_settings.title_peserta else ('Pendaftaran Peserta - ' + event_settings.event_name) }}{% endblock %}
 
 {% block content %}
 <div class="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">

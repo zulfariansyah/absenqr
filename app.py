@@ -122,11 +122,15 @@ def inject_settings():
     local_ip = get_local_ip()
     port = ACTIVE_PORT
     
-    # Pastikan file logo diakses melalui subpath prefix (misal /absenpeserta/static/uploads/...)
+    # Pastikan file logo dan favicon diakses melalui subpath prefix (misal /absenpeserta/static/uploads/...)
+    prefix = request.script_root or ''
     logo_val = settings.get('event_logo', '')
     if logo_val and logo_val.startswith('/static/'):
-        prefix = request.script_root or ''
         settings['event_logo'] = f"{prefix}{logo_val}"
+
+    favicon_val = settings.get('event_favicon', '')
+    if favicon_val and favicon_val.startswith('/static/'):
+        settings['event_favicon'] = f"{prefix}{favicon_val}"
 
     return {
         'event_settings': settings,
@@ -603,14 +607,41 @@ def api_get_settings():
 @app.route('/api/settings', methods=['POST'])
 @admin_required
 def api_update_settings():
-    """Memperbarui nama acara dan mengunggah logo acara"""
+    """Memperbarui nama acara, judul halaman (title tag), favicon, dan logo acara"""
     event_name = request.form.get('event_name', '').strip()
     if event_name:
         database.set_setting('event_name', event_name)
 
+    if 'title_peserta' in request.form:
+        title_peserta = request.form.get('title_peserta', '').strip()
+        database.set_setting('title_peserta', title_peserta)
+
+    if 'title_console' in request.form:
+        title_console = request.form.get('title_console', '').strip()
+        database.set_setting('title_console', title_console)
+
     if 'event_info' in request.form:
         event_info = request.form.get('event_info', '').strip()
         database.set_setting('event_info', event_info)
+
+    # Periksa apakah ada file favicon yang diunggah
+    if 'event_favicon' in request.files:
+        file = request.files['event_favicon']
+        if file and file.filename != '':
+            ext = os.path.splitext(file.filename)[1].lower()
+            allowed_extensions = ['.ico', '.png', '.svg', '.webp', '.jpg', '.jpeg']
+            if ext not in allowed_extensions:
+                return jsonify({
+                    'success': False,
+                    'message': 'Format Favicon tidak didukung! Gunakan ICO, PNG, SVG, atau WEBP.'
+                }), 400
+
+            filename = f"event_favicon_{datetime.now().strftime('%Y%m%d%H%M%S')}{ext}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            favicon_url = f"/static/uploads/{filename}"
+            database.set_setting('event_favicon', favicon_url)
 
     # Periksa apakah ada file logo yang diunggah
     if 'event_logo' in request.files:
@@ -647,6 +678,17 @@ def api_reset_logo():
     return jsonify({
         'success': True,
         'message': 'Logo acara berhasil direset ke default.',
+        'settings': database.get_all_settings()
+    })
+
+@app.route('/api/settings/reset-favicon', methods=['POST'])
+@admin_required
+def api_reset_favicon():
+    """Mereset Favicon acara kembali ke default sistem"""
+    database.set_setting('event_favicon', '')
+    return jsonify({
+        'success': True,
+        'message': 'Favicon berhasil direset ke default.',
         'settings': database.get_all_settings()
     })
 
