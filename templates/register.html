@@ -1,17 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Pendaftaran Seminar - SeminarPass{% endblock %}
+{% block title %}Pendaftaran Peserta - {{ event_settings.event_name }}{% endblock %}
 
 {% block content %}
 <div class="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
     <!-- Header Section -->
     <div class="text-center mb-8">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3">
+        {% if event_settings.event_logo %}
+            <div class="mb-4">
+                <img src="{{ event_settings.event_logo }}" alt="Logo Acara" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl mx-auto object-contain bg-white p-2 border border-slate-200 shadow-md">
+            </div>
+        {% endif %}
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3 shadow-sm border border-emerald-200">
             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
             Registrasi Peserta Seminar
         </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Formulir Pendaftaran Seminar</h1>
-        <p class="mt-2 text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            Formulir Pendaftaran Peserta<br>
+            <span class="text-emerald-700 font-extrabold text-xl sm:text-2xl lg:text-3xl block mt-1.5">{{ event_settings.event_name }}</span>
+        </h1>
+        <p class="mt-3 text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
             Silakan lengkapi data diri Anda. Setelah mendaftar, sistem akan membuat <strong>QR Code 10 Karakter Unik</strong> sebagai tiket absensi kehadiran seminar.
         </p>
     </div>
