@@ -113,6 +113,19 @@
                     </div>
                 </div>
 
+                {% if event_settings.event_info %}
+                <!-- Custom Event Information / Announcement -->
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-left flex items-start gap-3 text-xs text-blue-900">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="megaphone" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-blue-950 uppercase block">Informasi Acara:</span>
+                        <p class="mt-1 leading-relaxed whitespace-pre-line font-medium">{{ event_settings.event_info }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Action buttons (No print) -->
                 <div class="grid grid-cols-2 gap-3 no-print pt-2">
                     <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="qr_semnasretro_{{ participant.qr_code }}.png"

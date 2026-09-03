@@ -585,6 +585,10 @@ def api_update_settings():
     if event_name:
         database.set_setting('event_name', event_name)
 
+    if 'event_info' in request.form:
+        event_info = request.form.get('event_info', '').strip()
+        database.set_setting('event_info', event_info)
+
     # Periksa apakah ada file logo yang diunggah
     if 'event_logo' in request.files:
         file = request.files['event_logo']

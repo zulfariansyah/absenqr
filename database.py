@@ -58,6 +58,7 @@ def init_db():
     # Set default event settings if not exist
     cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('event_name', 'Seminar Nasional Teknologi & Inovasi 2026')")
     cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('event_logo', '')")
+    cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('event_info', '')")
     
     # Inisialisasi 5 User Admin Bawaan
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -231,6 +232,8 @@ def get_all_settings():
         settings['event_name'] = 'Seminar Nasional Teknologi & Inovasi 2026'
     if 'event_logo' not in settings:
         settings['event_logo'] = ''
+    if 'event_info' not in settings:
+        settings['event_info'] = ''
     return settings
 
 def generate_unique_qr_code():

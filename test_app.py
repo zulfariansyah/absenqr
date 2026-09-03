@@ -172,14 +172,18 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertTrue('Budi' in csv_res.data.decode('utf-8'))
 
     def test_07_event_settings(self):
-        """Uji pengelolaan nama acara dan logo"""
+        """Uji pengelolaan nama acara, informasi tambahan, dan logo"""
         self.login_admin()
 
-        # Update event name
-        update_res = self.app.post('/api/settings', data={'event_name': 'Workshop AI Vision 2026'})
+        # Update event name and custom info
+        update_res = self.app.post('/api/settings', data={
+            'event_name': 'Workshop AI Vision 2026',
+            'event_info': 'Grup WA: https://chat.whatsapp.com/test'
+        })
         self.assertEqual(update_res.status_code, 200)
         new_settings = json.loads(update_res.data)['settings']
         self.assertEqual(new_settings['event_name'], 'Workshop AI Vision 2026')
+        self.assertEqual(new_settings['event_info'], 'Grup WA: https://chat.whatsapp.com/test')
 
         # Reset logo
         reset_res = self.app.post('/api/settings/reset-logo')
