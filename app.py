@@ -502,10 +502,21 @@ def api_stats():
 @app.route('/api/participant/<int:participant_id>/toggle', methods=['POST'])
 @admin_required
 def api_toggle_status(participant_id):
-    """Mengubah status pendaftar <-> peserta secara manual"""
+    """Mengubah status pendaftar <-> peserta secara manual (Petugas hanya boleh revert peserta -> pendaftar)"""
+    participant = database.get_participant_by_id(participant_id)
+    if not participant:
+        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan.'}), 404
+
+    is_superadmin = session.get('admin_role') == 'superadmin'
+    if not is_superadmin and participant['status'] == 'pendaftar':
+        return jsonify({
+            'success': False,
+            'message': 'Petugas tidak memiliki izin untuk mengubah status pendaftar menjadi hadir secara manual. Peserta wajib melakukan pemindaian QR Code.'
+        }), 403
+
     updated = database.toggle_status(participant_id)
     if not updated:
-        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan.'}), 404
+        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan atau gagal diperbarui.'}), 404
         
     return jsonify({
         'success': True,
@@ -530,6 +541,10 @@ def api_get_participant(participant_id):
 @admin_required
 def api_edit_participant(participant_id):
     """Memperbarui informasi data peserta (Fitur Edit)"""
+    participant = database.get_participant_by_id(participant_id)
+    if not participant:
+        return jsonify({'success': False, 'message': 'Peserta tidak ditemukan.'}), 404
+
     data = request.get_json() or {}
     raw_nim = data.get('nim_nip', '').strip()
     raw_nama = data.get('nama_lengkap', '').strip()
@@ -538,6 +553,13 @@ def api_edit_participant(participant_id):
     raw_pekerjaan = data.get('pekerjaan', '').strip()
     raw_bidang = data.get('bidang_keilmuan', '').strip()
     raw_status = data.get('status', '').strip().lower()
+
+    is_superadmin = session.get('admin_role') == 'superadmin'
+    if not is_superadmin and participant['status'] == 'pendaftar' and raw_status == 'peserta':
+        return jsonify({
+            'success': False,
+            'message': 'Petugas tidak memiliki izin untuk mengubah status pendaftar menjadi hadir secara manual. Peserta wajib melakukan pemindaian QR Code.'
+        }), 403
 
     if not raw_nim or not raw_nama or not raw_institusi or not raw_pekerjaan:
         return jsonify({
@@ -793,9 +815,9 @@ def api_qr_image(qr_code):
     )
 
 @app.route('/api/export-csv')
-@admin_required
+@superadmin_required
 def export_csv():
-    """Mengekspor daftar pendaftar/peserta ke file CSV dengan format UTF-8 (kompatibel Excel)"""
+    """Mengekspor daftar pendaftar/peserta ke file CSV dengan format UTF-8 (Khusus Super Admin)"""
     status_filter = request.args.get('status') # 'pendaftar', 'peserta', or all
     rows = database.get_participants(status=status_filter)
     
@@ -831,7 +853,7 @@ def export_csv():
     )
 
 @app.route('/api/import-csv', methods=['POST'])
-@admin_required
+@superadmin_required
 def import_csv():
     """Mengimpor data pendaftar & peserta keseluruhan dari file CSV backup"""
     if 'file' not in request.files:

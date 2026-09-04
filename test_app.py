@@ -560,6 +560,78 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertIn('Informatika', csv_text)
         self.assertIn('Teknik Geologi', csv_text)
 
+    def test_15_petugas_role_restrictions(self):
+        """Uji pembatasan hak akses role Petugas: tidak bisa toggle pendaftar->peserta manual, bisa revert peserta->pendaftar, dan tidak bisa export/import data"""
+        # 1. Daftarkan 1 peserta (status: pendaftar)
+        reg_res = self.app.post('/api/register', json={
+            'nim_nip': 'PETUGAS_TEST_01',
+            'nama_lengkap': 'Peserta Uji Hak Akses',
+            'no_hp': '081234567890',
+            'institusi': 'UNMUL',
+            'pekerjaan': 'Mahasiswa S1',
+            'bidang_keilmuan': 'Informatika'
+        })
+        self.assertEqual(reg_res.status_code, 200)
+        p_data = json.loads(reg_res.data)['data']
+        p_id = p_data['id']
+        qr_code = p_data['qr_code']
+        self.assertEqual(p_data['status'], 'pendaftar')
+
+        # 2. Login sebagai Petugas (petugas1)
+        login_petugas = self.login_admin('petugas1', 'admin123')
+        self.assertEqual(login_petugas.status_code, 200)
+
+        # 3. Petugas mencoba mengubah pendaftar -> peserta secara manual via toggle (Harus DITOLAK 403)
+        toggle_fail = self.app.post(f'/api/participant/{p_id}/toggle')
+        self.assertEqual(toggle_fail.status_code, 403)
+        self.assertIn('Petugas tidak memiliki izin', json.loads(toggle_fail.data)['message'])
+
+        # 4. Petugas mencoba mengubah pendaftar -> peserta via modal edit (Harus DITOLAK 403)
+        edit_fail = self.app.post(f'/api/participant/{p_id}/edit', json={
+            'nim_nip': 'PETUGAS_TEST_01',
+            'nama_lengkap': 'Peserta Uji Hak Akses',
+            'no_hp': '081234567890',
+            'institusi': 'UNMUL',
+            'pekerjaan': 'Mahasiswa S1',
+            'bidang_keilmuan': 'Informatika',
+            'status': 'peserta'
+        })
+        self.assertEqual(edit_fail.status_code, 403)
+        self.assertIn('Petugas tidak memiliki izin', json.loads(edit_fail.data)['message'])
+
+        # 5. Petugas mencoba mengakses fitur Export CSV (Harus DITOLAK 403)
+        exp_fail = self.app.get('/api/export-csv')
+        self.assertEqual(exp_fail.status_code, 403)
+
+        # 6. Petugas mencoba mengakses fitur Import CSV (Harus DITOLAK 403)
+        import_fail = self.app.post('/api/import-csv')
+        self.assertEqual(import_fail.status_code, 403)
+
+        # 7. Peserta melakukan scan QR absensi secara mandiri -> Hadir (peserta)
+        scan_res = self.app.post('/api/scan', json={'qr_code': qr_code})
+        self.assertEqual(scan_res.status_code, 200)
+        self.assertEqual(json.loads(scan_res.data)['data']['status'], 'peserta')
+
+        # 8. Petugas MENGEMBALIKAN status peserta -> pendaftar via toggle (Harus DIIZINKAN 200)
+        revert_res = self.app.post(f'/api/participant/{p_id}/toggle')
+        self.assertEqual(revert_res.status_code, 200)
+        revert_data = json.loads(revert_res.data)['data']
+        self.assertEqual(revert_data['status'], 'pendaftar')
+        self.assertIsNone(revert_data['attended_at'])
+
+        # 9. Logout Petugas, Login sebagai Super Admin
+        self.app.post('/api/logout')
+        self.login_admin('admin', 'admin123')
+
+        # 10. Super Admin BISA mengubah pendaftar -> peserta secara manual (200 OK)
+        sa_toggle = self.app.post(f'/api/participant/{p_id}/toggle')
+        self.assertEqual(sa_toggle.status_code, 200)
+        self.assertEqual(json.loads(sa_toggle.data)['data']['status'], 'peserta')
+
+        # 11. Super Admin BISA mengakses Export CSV (200 OK)
+        sa_exp = self.app.get('/api/export-csv')
+        self.assertEqual(sa_exp.status_code, 200)
+
 if __name__ == '__main__':
     unittest.main()
 
