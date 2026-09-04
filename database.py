@@ -27,17 +27,20 @@ def init_db():
             no_hp TEXT DEFAULT '',
             institusi TEXT NOT NULL,
             pekerjaan TEXT NOT NULL,
+            bidang_keilmuan TEXT DEFAULT '',
             status TEXT NOT NULL DEFAULT 'pendaftar',
             created_at TEXT NOT NULL,
             attended_at TEXT
         )
     """)
     
-    # Migrasi otomatis jika kolom no_hp belum ada
+    # Migrasi otomatis jika kolom belum ada
     cursor.execute("PRAGMA table_info(participants)")
     columns = [col['name'] for col in cursor.fetchall()]
     if 'no_hp' not in columns:
         cursor.execute("ALTER TABLE participants ADD COLUMN no_hp TEXT DEFAULT ''")
+    if 'bidang_keilmuan' not in columns:
+        cursor.execute("ALTER TABLE participants ADD COLUMN bidang_keilmuan TEXT DEFAULT ''")
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
@@ -257,7 +260,7 @@ def generate_unique_qr_code():
             conn.close()
             return code
 
-def register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan):
+def register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, bidang_keilmuan='Lainnya'):
     """Mendaftarkan pendaftar baru dengan status default 'pendaftar'"""
     qr_code = generate_unique_qr_code()
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -265,9 +268,9 @@ def register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO participants (qr_code, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, 'pendaftar', ?)
-    """, (qr_code, nim_nip.strip(), nama_lengkap.strip(), (no_hp or '').strip(), institusi.strip(), pekerjaan.strip(), created_at))
+        INSERT INTO participants (qr_code, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, bidang_keilmuan, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'pendaftar', ?)
+    """, (qr_code, nim_nip.strip(), nama_lengkap.strip(), (no_hp or '').strip(), institusi.strip(), pekerjaan.strip(), (bidang_keilmuan or 'Lainnya').strip(), created_at))
     conn.commit()
     inserted_id = cursor.lastrowid
     
@@ -276,7 +279,7 @@ def register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan):
     conn.close()
     return dict(row)
 
-def upsert_participant_from_csv(qr_code, nim_nip, nama_lengkap, no_hp='', institusi='-', pekerjaan='Lainnya', status='pendaftar', created_at=None, attended_at=None, overwrite=True):
+def upsert_participant_from_csv(qr_code, nim_nip, nama_lengkap, no_hp='', institusi='-', pekerjaan='Lainnya', bidang_keilmuan='Lainnya', status='pendaftar', created_at=None, attended_at=None, overwrite=True):
     """
     Menyimpan atau memperbarui data peserta dari file CSV backup (pendaftar & peserta).
     Jika data sudah ada (berdasarkan qr_code atau nim_nip):
@@ -293,6 +296,7 @@ def upsert_participant_from_csv(qr_code, nim_nip, nama_lengkap, no_hp='', instit
     cleaned_hp = (no_hp or '').strip()
     cleaned_inst = institusi.strip()
     cleaned_job = pekerjaan.strip() if pekerjaan else 'Lainnya'
+    cleaned_bidang = bidang_keilmuan.strip() if bidang_keilmuan else 'Lainnya'
     
     status_lower = (status or 'pendaftar').strip().lower()
     final_status = 'peserta' if ('peserta' in status_lower or 'hadir' in status_lower) and 'belum' not in status_lower else 'pendaftar'
@@ -316,9 +320,9 @@ def upsert_participant_from_csv(qr_code, nim_nip, nama_lengkap, no_hp='', instit
         if overwrite:
             cursor.execute("""
                 UPDATE participants 
-                SET qr_code = ?, nim_nip = ?, nama_lengkap = ?, no_hp = ?, institusi = ?, pekerjaan = ?, status = ?, created_at = ?, attended_at = ?
+                SET qr_code = ?, nim_nip = ?, nama_lengkap = ?, no_hp = ?, institusi = ?, pekerjaan = ?, bidang_keilmuan = ?, status = ?, created_at = ?, attended_at = ?
                 WHERE id = ?
-            """, (qr_code, cleaned_nim, cleaned_nama, cleaned_hp, cleaned_inst, cleaned_job, final_status, final_created_at, final_attended_at, existing['id']))
+            """, (qr_code, cleaned_nim, cleaned_nama, cleaned_hp, cleaned_inst, cleaned_job, cleaned_bidang, final_status, final_created_at, final_attended_at, existing['id']))
             conn.commit()
             conn.close()
             return 'updated'
@@ -327,9 +331,9 @@ def upsert_participant_from_csv(qr_code, nim_nip, nama_lengkap, no_hp='', instit
             return 'skipped'
     else:
         cursor.execute("""
-            INSERT INTO participants (qr_code, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status, created_at, attended_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (qr_code, cleaned_nim, cleaned_nama, cleaned_hp, cleaned_inst, cleaned_job, final_status, final_created_at, final_attended_at))
+            INSERT INTO participants (qr_code, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, bidang_keilmuan, status, created_at, attended_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (qr_code, cleaned_nim, cleaned_nama, cleaned_hp, cleaned_inst, cleaned_job, cleaned_bidang, final_status, final_created_at, final_attended_at))
         conn.commit()
         conn.close()
         return 'inserted'
@@ -458,15 +462,18 @@ def bulk_delete_participants(ids):
     conn.close()
     return count
 
-def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status=None):
-    """Memperbarui informasi data peserta (Fitur Edit)"""
-    participant = get_participant_by_id(participant_id)
+def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status=None, bidang_keilmuan=None):
+    """Memperbarui informasi biodata, bidang keilmuan, dan status pendaftar/peserta"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM participants WHERE id = ?", (participant_id,))
+    participant = cursor.fetchone()
     if not participant:
+        conn.close()
         return None
         
     cleaned_nim = nim_nip.strip()
-    conn = get_db_connection()
-    cursor = conn.cursor()
     
     # Cek apakah No. Identitas baru sudah dipakai oleh peserta lain
     cursor.execute("SELECT id FROM participants WHERE nim_nip = ? AND id != ?", (cleaned_nim, participant_id))
@@ -476,6 +483,8 @@ def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, 
         return {"error": "DUPLICATE_NIM", "message": f'Nomor Identitas "{cleaned_nim}" sudah digunakan oleh peserta lain.'}
         
     current_status = status if status in ['pendaftar', 'peserta'] else participant['status']
+    current_bidang = bidang_keilmuan.strip() if bidang_keilmuan is not None else (participant['bidang_keilmuan'] if 'bidang_keilmuan' in participant.keys() else 'Lainnya')
+    
     attended_at = participant['attended_at']
     if current_status == 'peserta' and not attended_at:
         attended_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -484,9 +493,9 @@ def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, 
 
     cursor.execute("""
         UPDATE participants
-        SET nim_nip = ?, nama_lengkap = ?, no_hp = ?, institusi = ?, pekerjaan = ?, status = ?, attended_at = ?
+        SET nim_nip = ?, nama_lengkap = ?, no_hp = ?, institusi = ?, pekerjaan = ?, bidang_keilmuan = ?, status = ?, attended_at = ?
         WHERE id = ?
-    """, (cleaned_nim, nama_lengkap.strip(), no_hp.strip(), institusi.strip(), pekerjaan.strip(), current_status, attended_at, participant_id))
+    """, (cleaned_nim, nama_lengkap.strip(), no_hp.strip(), institusi.strip(), pekerjaan.strip(), current_bidang, current_status, attended_at, participant_id))
     conn.commit()
     
     cursor.execute("SELECT * FROM participants WHERE id = ?", (participant_id,))
@@ -494,10 +503,10 @@ def update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, 
     conn.close()
     return updated
 
-def get_participants(status=None, search=None, pekerjaan=None):
+def get_participants(status=None, search=None, pekerjaan=None, bidang_keilmuan=None):
     """
     Mengambil data peserta dengan filter status ('pendaftar'/'peserta'),
-    kata kunci pencarian (NIM/NIP, Nama, Institusi, QR), dan jenis pekerjaan.
+    kata kunci pencarian (NIM/NIP, Nama, Institusi, Bidang Keilmuan, QR), jenis pekerjaan, dan bidang keilmuan.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -512,11 +521,15 @@ def get_participants(status=None, search=None, pekerjaan=None):
     if pekerjaan and pekerjaan != 'Semua':
         query += " AND pekerjaan = ?"
         params.append(pekerjaan)
+
+    if bidang_keilmuan and bidang_keilmuan != 'Semua':
+        query += " AND bidang_keilmuan = ?"
+        params.append(bidang_keilmuan)
         
     if search:
         search_pattern = f"%{search.strip()}%"
-        query += " AND (nim_nip LIKE ? OR nama_lengkap LIKE ? OR no_hp LIKE ? OR institusi LIKE ? OR qr_code LIKE ?)"
-        params.extend([search_pattern, search_pattern, search_pattern, search_pattern, search_pattern])
+        query += " AND (nim_nip LIKE ? OR nama_lengkap LIKE ? OR no_hp LIKE ? OR institusi LIKE ? OR bidang_keilmuan LIKE ? OR qr_code LIKE ?)"
+        params.extend([search_pattern, search_pattern, search_pattern, search_pattern, search_pattern, search_pattern])
         
     if status == 'peserta':
         query += " ORDER BY attended_at DESC, id DESC"
@@ -529,7 +542,7 @@ def get_participants(status=None, search=None, pekerjaan=None):
     return rows
 
 def get_stats():
-    """Mengambil ringkasan statistik kehadiran seminar dan per rincian pekerjaan peserta hadir"""
+    """Mengambil ringkasan statistik kehadiran seminar, rincian profesi, dan rincian bidang keilmuan peserta hadir"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -546,10 +559,26 @@ def get_stats():
     cursor.execute("SELECT pekerjaan, COUNT(*) FROM participants WHERE status = 'peserta' GROUP BY pekerjaan")
     job_rows = cursor.fetchall()
     job_counts = {row['pekerjaan']: row[1] for row in job_rows}
+
+    # Rincian peserta hadir per bidang keilmuan
+    cursor.execute("SELECT bidang_keilmuan, COUNT(*) FROM participants WHERE status = 'peserta' GROUP BY bidang_keilmuan")
+    bidang_rows = cursor.fetchall()
+    bidang_counts = {row['bidang_keilmuan']: row[1] for row in bidang_rows if row['bidang_keilmuan']}
     
     conn.close()
     
     attendance_rate = round((peserta_count / total * 100), 1) if total > 0 else 0
+    
+    std_bidang = [
+        'Informatika', 'Sistem Informasi', 'Teknik Pertambangan', 'Arsitektur',
+        'Teknik Kimia', 'Teknik Geologi', 'Teknik Elektro', 'Teknik Lingkungan',
+        'Teknik Sipil', 'Teknik Industri', 'Lainnya'
+    ]
+    
+    peserta_by_bidang = {b: bidang_counts.get(b, 0) for b in std_bidang}
+    for k, v in bidang_counts.items():
+        if k not in std_bidang:
+            peserta_by_bidang['Lainnya'] = peserta_by_bidang.get('Lainnya', 0) + v
     
     return {
         "total": total,
@@ -562,5 +591,6 @@ def get_stats():
             "dosen": job_counts.get("Dosen", 0),
             "praktisi": job_counts.get("Praktisi", 0),
             "lainnya": job_counts.get("Lainnya", 0)
-        }
+        },
+        "peserta_by_bidang": peserta_by_bidang
     }

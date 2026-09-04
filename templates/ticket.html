@@ -108,6 +108,10 @@
                         <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ participant.pekerjaan }}</span>
                     </div>
                     <div class="py-2 flex justify-between">
+                        <span class="text-slate-500 font-medium">Bidang Keilmuan</span>
+                        <span class="font-bold text-slate-900 text-right">{{ participant.bidang_keilmuan or '-' }}</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
                         <span class="text-slate-500 font-medium">Waktu Daftar</span>
                         <span class="text-slate-600 text-xs">{{ participant.created_at }}</span>
                     </div>

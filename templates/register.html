@@ -103,15 +103,58 @@
                 </div>
             </div>
 
-            <!-- Row 3: Institusi -->
-            <div>
-                <label for="institusi" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                    <i data-lucide="building" class="w-4 h-4 text-emerald-600"></i>
-                    Institusi / Universitas / Perusahaan <span class="text-rose-500">*</span>
-                </label>
-                <input type="text" id="institusi" name="institusi" required
-                    placeholder="Contoh: Universitas Indonesia / PT Teknologi Nusantara"
-                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+            <!-- Row 3: Institusi & Bidang Keilmuan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="institusi" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="building" class="w-4 h-4 text-emerald-600"></i>
+                        Institusi / Perusahaan <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="institusi" name="institusi" required
+                        placeholder="Contoh: Universitas Mulawarman / PT Telkom"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
+                    <p class="text-xs text-slate-500 mt-1">Asal kampus, sekolah, instansi, atau instansi kerja</p>
+                </div>
+
+                <!-- Searchable Dropdown Bidang Keilmuan -->
+                <div class="relative" id="bidangKeilmuanContainer">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-600"></i>
+                        Bidang Keilmuan <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="hidden" id="bidang_keilmuan" name="bidang_keilmuan" required value="">
+                    
+                    <button type="button" id="bidangDropdownBtn" onclick="toggleBidangDropdown()"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-left text-sm transition shadow-sm bg-white flex items-center justify-between">
+                        <span id="bidangSelectText" class="text-slate-400 truncate">-- Pilih Bidang Keilmuan --</span>
+                        <i data-lucide="chevron-down" id="bidangChevron" class="w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200"></i>
+                    </button>
+
+                    <!-- Dropdown Popover with Live Search -->
+                    <div id="bidangDropdownPanel" class="hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50">
+                            <div class="relative">
+                                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
+                                <input type="text" id="bidangSearchInput" oninput="filterBidangOptions(this.value)" placeholder="Cari bidang keilmuan..."
+                                    class="w-full pl-8 pr-3 py-1 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white" autocomplete="off">
+                            </div>
+                        </div>
+                        <div id="bidangOptionsList" class="max-h-48 overflow-y-auto p-1 text-xs divide-y divide-slate-50">
+                            <button type="button" onclick="selectBidangOption('Informatika')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Informatika</button>
+                            <button type="button" onclick="selectBidangOption('Sistem Informasi')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Sistem Informasi</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Pertambangan')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Pertambangan</button>
+                            <button type="button" onclick="selectBidangOption('Arsitektur')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Arsitektur</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Kimia')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Kimia</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Geologi')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Geologi</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Elektro')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Elektro</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Lingkungan')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Lingkungan</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Sipil')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Sipil</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Industri')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Industri</button>
+                            <button type="button" onclick="selectBidangOption('Lainnya')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Lainnya</button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Pilih bidang studi / peminatan Anda</p>
+                </div>
             </div>
 
             <!-- Information Alert -->
@@ -240,9 +283,13 @@
                     <span class="text-slate-500">Institusi:</span>
                     <span id="modalInstitusi" class="font-bold text-slate-900 text-right">-</span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
                     <span class="text-slate-500">Pekerjaan:</span>
                     <span id="modalPekerjaan" class="font-semibold text-emerald-700">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Bidang Keilmuan:</span>
+                    <span id="modalBidang" class="font-bold text-slate-900 text-right">-</span>
                 </div>
             </div>
 
@@ -276,6 +323,82 @@
     const successModal = document.getElementById('successModal');
     let currentQr = '';
 
+    // Searchable dropdown functions for Bidang Keilmuan
+    function toggleBidangDropdown() {
+        const panel = document.getElementById('bidangDropdownPanel');
+        const chevron = document.getElementById('bidangChevron');
+        const searchInput = document.getElementById('bidangSearchInput');
+        const isHidden = panel.classList.contains('hidden');
+        
+        if (isHidden) {
+            panel.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+            if (searchInput) {
+                searchInput.value = '';
+                filterBidangOptions('');
+                setTimeout(() => searchInput.focus(), 50);
+            }
+        } else {
+            panel.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
+    function filterBidangOptions(query) {
+        const q = (query || '').toLowerCase().trim();
+        const buttons = document.querySelectorAll('#bidangOptionsList .bidang-opt');
+        let matchedCount = 0;
+        buttons.forEach(btn => {
+            const txt = (btn.textContent || '').toLowerCase();
+            if (txt.includes(q)) {
+                btn.style.display = 'block';
+                matchedCount++;
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+        
+        let noResultMsg = document.getElementById('bidangNoResult');
+        if (matchedCount === 0) {
+            if (!noResultMsg) {
+                noResultMsg = document.createElement('div');
+                noResultMsg.id = 'bidangNoResult';
+                noResultMsg.className = 'p-3 text-center text-slate-400 text-xs italic';
+                noResultMsg.textContent = 'Tidak ditemukan hasil';
+                document.getElementById('bidangOptionsList').appendChild(noResultMsg);
+            }
+            noResultMsg.style.display = 'block';
+        } else if (noResultMsg) {
+            noResultMsg.style.display = 'none';
+        }
+    }
+
+    function selectBidangOption(val) {
+        document.getElementById('bidang_keilmuan').value = val;
+        const textSpan = document.getElementById('bidangSelectText');
+        textSpan.textContent = val;
+        textSpan.classList.remove('text-slate-400');
+        textSpan.classList.add('text-slate-800', 'font-medium');
+        
+        const panel = document.getElementById('bidangDropdownPanel');
+        const chevron = document.getElementById('bidangChevron');
+        panel.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+
+    // Close dropdown when clicked outside
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('bidangKeilmuanContainer');
+        if (container && !container.contains(e.target)) {
+            const panel = document.getElementById('bidangDropdownPanel');
+            const chevron = document.getElementById('bidangChevron');
+            if (panel && !panel.classList.contains('hidden')) {
+                panel.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -285,15 +408,16 @@
             no_hp: document.getElementById('no_hp').value.trim(),
             institusi: document.getElementById('institusi').value.trim(),
             pekerjaan: document.getElementById('pekerjaan').value,
+            bidang_keilmuan: document.getElementById('bidang_keilmuan').value,
             website_url: document.getElementById('website_url')?.value || '',
             hp_secondary: document.getElementById('hp_secondary')?.value || ''
         };
 
-        if (!payload.nim_nip || !payload.nama_lengkap || !payload.no_hp || !payload.institusi || !payload.pekerjaan) {
+        if (!payload.nim_nip || !payload.nama_lengkap || !payload.no_hp || !payload.institusi || !payload.pekerjaan || !payload.bidang_keilmuan) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Data Belum Lengkap',
-                text: 'Harap isi semua kolom formulir pendaftaran!',
+                text: 'Harap isi semua kolom formulir pendaftaran termasuk Bidang Keilmuan!',
                 confirmButtonColor: '#16a34a'
             });
             return;
@@ -336,6 +460,7 @@
                 document.getElementById('modalHp').textContent = p.no_hp || '-';
                 document.getElementById('modalInstitusi').textContent = p.institusi;
                 document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
+                document.getElementById('modalBidang').textContent = p.bidang_keilmuan || 'Lainnya';
 
                 const statusBadge = document.getElementById('modalStatusBadge');
                 const headerBox = document.getElementById('modalHeaderBox');
@@ -416,6 +541,10 @@
     function closeModalAndReset() {
         successModal.classList.add('hidden');
         form.reset();
+        document.getElementById('bidang_keilmuan').value = '';
+        const textSpan = document.getElementById('bidangSelectText');
+        textSpan.textContent = '-- Pilih Bidang Keilmuan --';
+        textSpan.className = 'text-slate-400 truncate';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>

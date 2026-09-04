@@ -412,12 +412,22 @@ def api_register():
             'message': f'Pekerjaan harus salah satu dari: Mahasiswa S1, Mahasiswa S2, Dosen, Praktisi, Lainnya'
         }), 400
 
+    raw_bidang = data.get('bidang_keilmuan', '').strip()
+    valid_bidang = [
+        'Informatika', 'Sistem Informasi', 'Teknik Pertambangan', 'Arsitektur',
+        'Teknik Kimia', 'Teknik Geologi', 'Teknik Elektro', 'Teknik Lingkungan',
+        'Teknik Sipil', 'Teknik Industri', 'Lainnya'
+    ]
+    if not raw_bidang or raw_bidang not in valid_bidang:
+        raw_bidang = 'Lainnya'
+
     # 5. XSS Sanitization: Escape karakter khusus HTML (<, >, &, ", ')
     nim_nip = html.escape(raw_nim)
     nama_lengkap = html.escape(raw_nama)
     no_hp = html.escape(raw_no_hp)
     institusi = html.escape(raw_institusi)
     pekerjaan = html.escape(raw_pekerjaan)
+    bidang_keilmuan = html.escape(raw_bidang)
 
     # 6. Deteksi Duplikasi Nomor Identitas: Jika sudah ada, langsung kembalikan data pendaftaran sebelumnya
     existing = database.get_participant_by_nim(nim_nip)
@@ -431,7 +441,7 @@ def api_register():
         }), 200
         
     try:
-        participant = database.register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan)
+        participant = database.register_participant(nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, bidang_keilmuan)
         return jsonify({
             'success': True,
             'message': 'Pendaftaran berhasil!',
@@ -466,12 +476,13 @@ def api_scan():
 @app.route('/api/participants', methods=['GET'])
 @admin_required
 def api_participants():
-    """Mengambil data peserta berdasarkan status (pendaftar/peserta), pencarian, dan pekerjaan"""
+    """Mengambil data peserta berdasarkan status (pendaftar/peserta), pencarian, pekerjaan, dan bidang keilmuan"""
     status = request.args.get('status')
     search = request.args.get('search')
     pekerjaan = request.args.get('pekerjaan')
+    bidang_keilmuan = request.args.get('bidang_keilmuan')
     
-    rows = database.get_participants(status=status, search=search, pekerjaan=pekerjaan)
+    rows = database.get_participants(status=status, search=search, pekerjaan=pekerjaan, bidang_keilmuan=bidang_keilmuan)
     return jsonify({
         'success': True,
         'count': len(rows),
@@ -525,6 +536,7 @@ def api_edit_participant(participant_id):
     raw_no_hp = data.get('no_hp', '').strip()
     raw_institusi = data.get('institusi', '').strip()
     raw_pekerjaan = data.get('pekerjaan', '').strip()
+    raw_bidang = data.get('bidang_keilmuan', '').strip()
     raw_status = data.get('status', '').strip().lower()
 
     if not raw_nim or not raw_nama or not raw_institusi or not raw_pekerjaan:
@@ -546,14 +558,25 @@ def api_edit_participant(participant_id):
     if raw_pekerjaan not in valid_jobs:
         return jsonify({'success': False, 'message': 'Pekerjaan harus salah satu dari: Mahasiswa S1, Mahasiswa S2, Dosen, Praktisi, Lainnya'}), 400
 
+    valid_bidang = [
+        'Informatika', 'Sistem Informasi', 'Teknik Pertambangan', 'Arsitektur',
+        'Teknik Kimia', 'Teknik Geologi', 'Teknik Elektro', 'Teknik Lingkungan',
+        'Teknik Sipil', 'Teknik Industri', 'Lainnya'
+    ]
+    if raw_bidang and raw_bidang not in valid_bidang:
+        raw_bidang = 'Lainnya'
+    if not raw_bidang:
+        raw_bidang = 'Lainnya'
+
     nim_nip = html.escape(raw_nim)
     nama_lengkap = html.escape(raw_nama)
     no_hp = html.escape(raw_no_hp) if raw_no_hp else ''
     institusi = html.escape(raw_institusi)
     pekerjaan = html.escape(raw_pekerjaan)
+    bidang_keilmuan = html.escape(raw_bidang)
     status = raw_status if raw_status in ['pendaftar', 'peserta'] else None
 
-    result = database.update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status)
+    result = database.update_participant(participant_id, nim_nip, nama_lengkap, no_hp, institusi, pekerjaan, status, bidang_keilmuan)
     if not result:
         return jsonify({'success': False, 'message': 'Peserta tidak ditemukan atau gagal diperbarui.'}), 404
         
@@ -781,7 +804,7 @@ def export_csv():
     output.write('\ufeff')
     writer = csv.writer(output)
     
-    writer.writerow(['No', 'Kode QR', 'No. Identitas (NIM/NIP/NIDN/NUPTK)', 'Nama Lengkap', 'No. HP / WA', 'Institusi', 'Pekerjaan', 'Status', 'Waktu Pendaftaran', 'Waktu Hadir'])
+    writer.writerow(['No', 'Kode QR', 'No. Identitas (NIM/NIP/NIDN/NUPTK)', 'Nama Lengkap', 'No. HP / WA', 'Institusi', 'Pekerjaan', 'Bidang Keilmuan', 'Status', 'Waktu Pendaftaran', 'Waktu Hadir'])
     
     for idx, row in enumerate(rows, start=1):
         status_label = 'Peserta (Hadir)' if row['status'] == 'peserta' else 'Pendaftar (Belum Hadir)'
@@ -793,6 +816,7 @@ def export_csv():
             row['no_hp'] or '-',
             row['institusi'],
             row['pekerjaan'],
+            row['bidang_keilmuan'] or 'Lainnya',
             status_label,
             row['created_at'],
             row['attended_at'] or '-'
@@ -854,6 +878,7 @@ def import_csv():
             'no_hp': ['no. hp / wa', 'no hp / wa', 'no. hp', 'no hp', 'nomor hp', 'no telepon', 'telepon', 'whatsapp', 'no wa', 'phone', 'mobile', 'no_hp'],
             'institusi': ['institusi', 'instansi', 'universitas', 'kampus', 'perusahaan', 'institution'],
             'pekerjaan': ['pekerjaan', 'profesi', 'kategori', 'job', 'occupation'],
+            'bidang_keilmuan': ['bidang keilmuan', 'bidang', 'keilmuan', 'jurusan', 'prodi', 'program studi', 'major', 'field'],
             'status': ['status', 'status kehadiran', 'kehadiran', 'attendance'],
             'created_at': ['waktu pendaftaran', 'created_at', 'tanggal daftar', 'waktu daftar', 'created'],
             'attended_at': ['waktu hadir', 'attended_at', 'waktu absen', 'waktu scan', 'attended']
@@ -889,11 +914,24 @@ def import_csv():
                     no_hp = row[header_map['no_hp']] if 'no_hp' in header_map and header_map['no_hp'] < len(row) else ''
                     institusi = row[header_map['institusi']] if 'institusi' in header_map and header_map['institusi'] < len(row) else '-'
                     pekerjaan = row[header_map['pekerjaan']] if 'pekerjaan' in header_map and header_map['pekerjaan'] < len(row) else 'Lainnya'
+                    bidang_keilmuan = row[header_map['bidang_keilmuan']] if 'bidang_keilmuan' in header_map and header_map['bidang_keilmuan'] < len(row) else 'Lainnya'
                     status = row[header_map['status']] if 'status' in header_map and header_map['status'] < len(row) else 'pendaftar'
                     created_at = row[header_map['created_at']] if 'created_at' in header_map and header_map['created_at'] < len(row) else None
                     attended_at = row[header_map['attended_at']] if 'attended_at' in header_map and header_map['attended_at'] < len(row) else None
                 else:
-                    if len(row) >= 10 and row[0].isdigit():
+                    if len(row) >= 11 and row[0].isdigit():
+                        # [No, QR, NIM, Nama, NoHP, Institusi, Pekerjaan, Bidang, Status, WaktuDaftar, WaktuHadir]
+                        qr_code = row[1]
+                        nim_nip = row[2]
+                        nama_lengkap = row[3]
+                        no_hp = row[4]
+                        institusi = row[5]
+                        pekerjaan = row[6]
+                        bidang_keilmuan = row[7]
+                        status = row[8]
+                        created_at = row[9]
+                        attended_at = row[10]
+                    elif len(row) >= 10 and row[0].isdigit():
                         # [No, QR, NIM, Nama, NoHP, Institusi, Pekerjaan, Status, WaktuDaftar, WaktuHadir]
                         qr_code = row[1]
                         nim_nip = row[2]
@@ -901,6 +939,7 @@ def import_csv():
                         no_hp = row[4]
                         institusi = row[5]
                         pekerjaan = row[6]
+                        bidang_keilmuan = 'Lainnya'
                         status = row[7]
                         created_at = row[8]
                         attended_at = row[9]
@@ -912,9 +951,22 @@ def import_csv():
                         no_hp = ''
                         institusi = row[4]
                         pekerjaan = row[5]
+                        bidang_keilmuan = 'Lainnya'
                         status = row[6]
                         created_at = row[7]
                         attended_at = row[8]
+                    elif len(row) >= 10:
+                        # [QR, NIM, Nama, NoHP, Institusi, Pekerjaan, Bidang, Status, WaktuDaftar, WaktuHadir]
+                        qr_code = row[0]
+                        nim_nip = row[1]
+                        nama_lengkap = row[2]
+                        no_hp = row[3]
+                        institusi = row[4]
+                        pekerjaan = row[5]
+                        bidang_keilmuan = row[6]
+                        status = row[7]
+                        created_at = row[8]
+                        attended_at = row[9]
                     elif len(row) >= 9:
                         # [QR, NIM, Nama, NoHP, Institusi, Pekerjaan, Status, WaktuDaftar, WaktuHadir]
                         qr_code = row[0]
@@ -923,6 +975,7 @@ def import_csv():
                         no_hp = row[3]
                         institusi = row[4]
                         pekerjaan = row[5]
+                        bidang_keilmuan = 'Lainnya'
                         status = row[6]
                         created_at = row[7]
                         attended_at = row[8]
@@ -934,19 +987,22 @@ def import_csv():
                         no_hp = ''
                         institusi = row[3]
                         pekerjaan = row[4]
+                        bidang_keilmuan = 'Lainnya'
                         status = row[5]
                         created_at = row[6]
                         attended_at = row[7]
                     elif len(row) >= 4:
+                        # Minimal [NIM, Nama, NoHP, Institusi]
                         qr_code = ''
                         nim_nip = row[0]
                         nama_lengkap = row[1]
-                        no_hp = row[2] if len(row) > 4 else ''
-                        institusi = row[3] if len(row) > 4 else row[2]
-                        pekerjaan = row[4] if len(row) > 5 else (row[3] if len(row) > 3 else 'Lainnya')
-                        status = row[5] if len(row) > 5 else 'pendaftar'
-                        created_at = row[6] if len(row) > 6 else None
-                        attended_at = row[7] if len(row) > 7 else None
+                        no_hp = row[2]
+                        institusi = row[3]
+                        pekerjaan = row[4] if len(row) > 4 else 'Lainnya'
+                        bidang_keilmuan = row[5] if len(row) > 5 else 'Lainnya'
+                        status = 'pendaftar'
+                        created_at = None
+                        attended_at = None
                     else:
                         error_count += 1
                         continue
@@ -960,6 +1016,7 @@ def import_csv():
                 no_hp = html.escape((no_hp or '')[:20])
                 institusi = html.escape((institusi or '-')[:120])
                 pekerjaan = html.escape((pekerjaan or 'Lainnya')[:50])
+                bidang_keilmuan = html.escape((bidang_keilmuan or 'Lainnya')[:50])
 
                 res = database.upsert_participant_from_csv(
                     qr_code=qr_code,
@@ -968,6 +1025,7 @@ def import_csv():
                     no_hp=no_hp,
                     institusi=institusi,
                     pekerjaan=pekerjaan,
+                    bidang_keilmuan=bidang_keilmuan,
                     status=status,
                     created_at=created_at,
                     attended_at=attended_at,

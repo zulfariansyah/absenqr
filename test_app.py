@@ -493,6 +493,73 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         get_after = self.app.get(f'/api/participant/{p1_id}')
         self.assertEqual(get_after.status_code, 404)
 
+    def test_14_bidang_keilmuan_registration_stats_and_filter(self):
+        """Uji fitur Bidang Keilmuan: pendaftaran, filter, statistik per bidang, dan ekspor CSV"""
+        self.login_admin()
+
+        # 1. Daftarkan 2 peserta dengan bidang keilmuan berbeda
+        p1 = json.loads(self.app.post('/api/register', json={
+            'nim_nip': 'BIDANG001',
+            'nama_lengkap': 'Ilmuwan Informatika',
+            'no_hp': '081233344455',
+            'institusi': 'UNMUL',
+            'pekerjaan': 'Mahasiswa S1',
+            'bidang_keilmuan': 'Informatika'
+        }).data)['data']
+
+        p2 = json.loads(self.app.post('/api/register', json={
+            'nim_nip': 'BIDANG002',
+            'nama_lengkap': 'Insinyur Tambang',
+            'no_hp': '081255566677',
+            'institusi': 'ITB',
+            'pekerjaan': 'Praktisi',
+            'bidang_keilmuan': 'Teknik Pertambangan'
+        }).data)['data']
+
+        self.assertEqual(p1['bidang_keilmuan'], 'Informatika')
+        self.assertEqual(p2['bidang_keilmuan'], 'Teknik Pertambangan')
+
+        # 2. Scan p1 menjadi hadir
+        self.app.post('/api/scan', json={'qr_code': p1['qr_code']})
+
+        # 3. Cek stats per bidang
+        stats_res = self.app.get('/api/stats')
+        stats = json.loads(stats_res.data)['stats']
+        self.assertIn('peserta_by_bidang', stats)
+        self.assertEqual(stats['peserta_by_bidang']['Informatika'], 1)
+        self.assertEqual(stats['peserta_by_bidang']['Teknik Pertambangan'], 0) # Belum scan hadir
+
+        # 4. Uji filter bidang keilmuan pada API participants
+        res_info = self.app.get('/api/participants?bidang_keilmuan=Informatika')
+        list_info = json.loads(res_info.data)['data']
+        self.assertEqual(len(list_info), 1)
+        self.assertEqual(list_info[0]['nama_lengkap'], 'Ilmuwan Informatika')
+
+        res_tambang = self.app.get('/api/participants?bidang_keilmuan=Teknik Pertambangan')
+        list_tambang = json.loads(res_tambang.data)['data']
+        self.assertEqual(len(list_tambang), 1)
+        self.assertEqual(list_tambang[0]['nama_lengkap'], 'Insinyur Tambang')
+
+        # 5. Uji edit bidang keilmuan
+        edit_res = self.app.post(f'/api/participant/{p2["id"]}/edit', json={
+            'nim_nip': 'BIDANG002',
+            'nama_lengkap': 'Insinyur Tambang Berpindah',
+            'no_hp': '081255566677',
+            'institusi': 'ITB',
+            'pekerjaan': 'Praktisi',
+            'bidang_keilmuan': 'Teknik Geologi',
+            'status': 'peserta'
+        })
+        self.assertEqual(edit_res.status_code, 200)
+        self.assertEqual(json.loads(edit_res.data)['data']['bidang_keilmuan'], 'Teknik Geologi')
+
+        # 6. Uji CSV export menyertakan Bidang Keilmuan
+        exp_res = self.app.get('/api/export-csv')
+        csv_text = exp_res.data.decode('utf-8')
+        self.assertIn('Bidang Keilmuan', csv_text)
+        self.assertIn('Informatika', csv_text)
+        self.assertIn('Teknik Geologi', csv_text)
+
 if __name__ == '__main__':
     unittest.main()
 
