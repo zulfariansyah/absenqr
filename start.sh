@@ -4,7 +4,7 @@ cd "$PROJECT_DIR"
 
 PID_FILE="$PROJECT_DIR/gunicorn.pid"
 LOG_FILE="$PROJECT_DIR/gunicorn.log"
-PORT=${PORT:-5000}
+PORT=${PORT:-5050}
 
 # Periksa apakah proses sudah berjalan
 if [ -f "$PID_FILE" ]; then
@@ -41,9 +41,9 @@ fi
 echo "🚀 Menjalankan Aplikasi Absen Seminar di background (Port $PORT)..."
 
 if [ -f "$GUNICORN_BIN" ]; then
-    nohup "$GUNICORN_BIN" --workers 3 --bind 127.0.0.1:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
+    nohup "$GUNICORN_BIN" --workers 3 --bind 0.0.0.0:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
 elif command -v gunicorn > /dev/null 2>&1; then
-    nohup gunicorn --workers 3 --bind 127.0.0.1:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
+    nohup gunicorn --workers 3 --bind 0.0.0.0:$PORT --pid "$PID_FILE" wsgi:app >> "$LOG_FILE" 2>&1 &
 else
     # Fallback menjalankan app.py jika gunicorn tidak tersedia
     echo "⚠️  Menjalankan fallback dengan Python..."
