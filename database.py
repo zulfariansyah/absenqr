@@ -542,7 +542,7 @@ def get_participants(status=None, search=None, pekerjaan=None, bidang_keilmuan=N
     return rows
 
 def get_stats():
-    """Mengambil ringkasan statistik kehadiran seminar, rincian profesi, dan rincian bidang keilmuan peserta hadir"""
+    """Mengambil ringkasan statistik kehadiran seminar, rincian profesi, dan rincian bidang keilmuan peserta hadir & pendaftar"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -564,6 +564,16 @@ def get_stats():
     cursor.execute("SELECT bidang_keilmuan, COUNT(*) FROM participants WHERE status = 'peserta' GROUP BY bidang_keilmuan")
     bidang_rows = cursor.fetchall()
     bidang_counts = {row['bidang_keilmuan']: row[1] for row in bidang_rows if row['bidang_keilmuan']}
+
+    # Rincian calon peserta (pendaftar / belum hadir) per pekerjaan/profesi
+    cursor.execute("SELECT pekerjaan, COUNT(*) FROM participants WHERE status = 'pendaftar' GROUP BY pekerjaan")
+    pendaftar_job_rows = cursor.fetchall()
+    pendaftar_job_counts = {row['pekerjaan']: row[1] for row in pendaftar_job_rows}
+
+    # Rincian calon peserta (pendaftar / belum hadir) per bidang keilmuan
+    cursor.execute("SELECT bidang_keilmuan, COUNT(*) FROM participants WHERE status = 'pendaftar' GROUP BY bidang_keilmuan")
+    pendaftar_bidang_rows = cursor.fetchall()
+    pendaftar_bidang_counts = {row['bidang_keilmuan']: row[1] for row in pendaftar_bidang_rows if row['bidang_keilmuan']}
     
     conn.close()
     
@@ -579,6 +589,11 @@ def get_stats():
     for k, v in bidang_counts.items():
         if k not in std_bidang:
             peserta_by_bidang['Lainnya'] = peserta_by_bidang.get('Lainnya', 0) + v
+
+    pendaftar_by_bidang = {b: pendaftar_bidang_counts.get(b, 0) for b in std_bidang}
+    for k, v in pendaftar_bidang_counts.items():
+        if k not in std_bidang:
+            pendaftar_by_bidang['Lainnya'] = pendaftar_by_bidang.get('Lainnya', 0) + v
     
     return {
         "total": total,
@@ -592,5 +607,13 @@ def get_stats():
             "praktisi": job_counts.get("Praktisi", 0),
             "lainnya": job_counts.get("Lainnya", 0)
         },
-        "peserta_by_bidang": peserta_by_bidang
+        "peserta_by_bidang": peserta_by_bidang,
+        "pendaftar_by_job": {
+            "mhs_s1": pendaftar_job_counts.get("Mahasiswa S1", 0) + pendaftar_job_counts.get("Mahasiswa", 0),
+            "mhs_s2": pendaftar_job_counts.get("Mahasiswa S2", 0),
+            "dosen": pendaftar_job_counts.get("Dosen", 0),
+            "praktisi": pendaftar_job_counts.get("Praktisi", 0),
+            "lainnya": pendaftar_job_counts.get("Lainnya", 0)
+        },
+        "pendaftar_by_bidang": pendaftar_by_bidang
     }

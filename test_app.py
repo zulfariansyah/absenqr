@@ -152,6 +152,7 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertEqual(stats['peserta'], 1)
         self.assertEqual(stats['attendance_rate'], 50.0)
         self.assertEqual(stats['peserta_by_job']['praktisi'], 1)
+        self.assertEqual(stats['pendaftar_by_job']['mhs_s1'], 1)
 
     def test_06_qr_image_and_export(self):
         """Uji download gambar QR dan export CSV"""
@@ -528,6 +529,9 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         self.assertIn('peserta_by_bidang', stats)
         self.assertEqual(stats['peserta_by_bidang']['Informatika'], 1)
         self.assertEqual(stats['peserta_by_bidang']['Teknik Pertambangan'], 0) # Belum scan hadir
+        self.assertIn('pendaftar_by_bidang', stats)
+        self.assertEqual(stats['pendaftar_by_bidang']['Teknik Pertambangan'], 1) # Belum scan hadir (masih pendaftar)
+        self.assertEqual(stats['pendaftar_by_bidang']['Informatika'], 0)
 
         # 4. Uji filter bidang keilmuan pada API participants
         res_info = self.app.get('/api/participants?bidang_keilmuan=Informatika')
