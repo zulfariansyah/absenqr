@@ -4,7 +4,8 @@ cd "$PROJECT_DIR"
 
 PID_FILE="$PROJECT_DIR/gunicorn.pid"
 LOG_FILE="$PROJECT_DIR/gunicorn.log"
-PORT=${PORT:-5050}
+PORT=${PORT:-5002}
+export PORT
 
 # Periksa apakah proses sudah berjalan
 if [ -f "$PID_FILE" ]; then
@@ -24,6 +25,9 @@ GUNICORN_BIN=""
 if [ -f "$PROJECT_DIR/venv/bin/python" ]; then
     PYTHON_BIN="$PROJECT_DIR/venv/bin/python"
     GUNICORN_BIN="$PROJECT_DIR/venv/bin/gunicorn"
+elif [ -f "$PROJECT_DIR/.venv/bin/python3" ]; then
+    PYTHON_BIN="$PROJECT_DIR/.venv/bin/python3"
+    GUNICORN_BIN="$PROJECT_DIR/.venv/bin/gunicorn"
 elif [ -f "$PROJECT_DIR/.venv/bin/python" ]; then
     PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
     GUNICORN_BIN="$PROJECT_DIR/.venv/bin/gunicorn"
@@ -48,7 +52,7 @@ elif command -v gunicorn > /dev/null 2>&1; then
 else
     # Fallback menjalankan app.py jika gunicorn tidak tersedia
     echo "⚠️  Menjalankan fallback dengan Python..."
-    nohup "$PYTHON_BIN" app.py >> "$LOG_FILE" 2>&1 &
+    nohup env PORT=$PORT "$PYTHON_BIN" app.py >> "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
 fi
 
