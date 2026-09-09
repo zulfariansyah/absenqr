@@ -1084,7 +1084,11 @@ def import_csv():
         return jsonify({'success': False, 'message': f'Gagal memproses file CSV: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    ACTIVE_PORT = find_available_port(start_port=5001)
+    env_port = os.environ.get('PORT')
+    if env_port and env_port.isdigit():
+        ACTIVE_PORT = int(env_port)
+    else:
+        ACTIVE_PORT = find_available_port(start_port=5001)
     local_ip = get_local_ip()
     
     print("\n" + "="*65)
