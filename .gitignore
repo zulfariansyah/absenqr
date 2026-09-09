@@ -23,3 +23,7 @@ test_*.db*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Offline deployment archives
+*.tar.gz
+offline_wheels/
