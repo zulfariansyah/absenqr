@@ -32,10 +32,11 @@ else
     GUNICORN_BIN="gunicorn"
 fi
 
-# Jika gunicorn belum terinstall di venv, otomatis install
+# Jika gunicorn belum terinstall di venv, otomatis install secara offline jika ada wheels
 if [ ! -f "$GUNICORN_BIN" ] && ! command -v "$GUNICORN_BIN" > /dev/null 2>&1; then
-    echo "⚙️  Gunicorn belum terpasang. Memasang gunicorn sekarang..."
-    "$PYTHON_BIN" -m pip install gunicorn
+    if [ -d "$PROJECT_DIR/offline_wheels" ]; then
+        "$PYTHON_BIN" -m pip install --no-index --find-links="$PROJECT_DIR/offline_wheels" gunicorn 2>/dev/null || true
+    fi
 fi
 
 echo "🚀 Menjalankan Aplikasi Absen Seminar di background (Port $PORT)..."
