@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app_language or 'id' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - {{ event_settings.title_console if event_settings.title_console else ('Console Admin - ' + event_settings.event_name) }}</title>
+    <title>{{ t('login_title') }} - {{ event_settings.title_console if event_settings.title_console else ('Console Admin - ' + event_settings.event_name) }}</title>
     <!-- Favicon -->
     {% if event_settings.event_favicon %}
     <link rel="icon" href="{{ event_settings.event_favicon }}">
@@ -66,7 +66,7 @@
                 Admin Console
             </div>
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{{ event_settings.event_name }}</h1>
-            <p class="text-xs text-slate-500 mt-1">Silakan masuk untuk mengelola scan absensi & data peserta</p>
+            <p class="text-xs text-slate-500 mt-1">{{ t('login_subtitle') }}</p>
         </div>
 
         <!-- Login Card -->
@@ -75,21 +75,21 @@
                 <div>
                     <label for="username" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
-                        Username Admin
+                        {{ t('login_lbl_username') }}
                     </label>
                     <input type="text" id="username" name="username" required autofocus
-                        placeholder="Masukkan username admin"
+                        placeholder="{{ t('login_ph_username') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-sm placeholder:text-slate-400">
                 </div>
 
                 <div>
                     <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="lock" class="w-4 h-4 text-emerald-600"></i>
-                        Password
+                        {{ t('login_lbl_password') }}
                     </label>
                     <div class="relative">
                         <input type="password" id="password" name="password" required
-                            placeholder="••••••••"
+                            placeholder="{{ t('login_ph_password') }}"
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-sm placeholder:text-slate-400 pr-10">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                             <i data-lucide="eye" id="eyeIcon" class="w-4 h-4"></i>
@@ -99,20 +99,20 @@
 
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
                     <i data-lucide="info" class="w-4 h-4 text-emerald-600 shrink-0"></i>
-                    <span>Akun default: <strong>admin</strong> / <strong>admin123</strong></span>
+                    <span>{% if app_language == 'en' %}Default account:{% else %}Akun default:{% endif %} <strong>admin</strong> / <strong>admin123</strong></span>
                 </div>
 
                 <button type="submit" id="loginBtn"
                     class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/40 hover:scale-[1.01] active:scale-[0.99] transition flex items-center justify-center gap-2">
                     <i data-lucide="log-in" class="w-4 h-4"></i>
-                    <span id="loginBtnText">Masuk ke Console</span>
+                    <span id="loginBtnText">{{ t('login_btn_submit') }}</span>
                 </button>
             </form>
 
             <div class="pt-2 text-center border-t border-slate-100">
                 <a href="{{ url_for('index') }}" class="text-xs text-slate-500 hover:text-emerald-700 transition inline-flex items-center gap-1.5 font-medium">
                     <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                    <span>Kembali ke Halaman Pendaftaran</span>
+                    <span>{{ t('login_back_home') }}</span>
                 </a>
             </div>
         </div>
@@ -157,7 +157,7 @@
             if (!username || !password) return;
 
             loginBtn.disabled = true;
-            loginBtnText.textContent = 'Memverifikasi...';
+            loginBtnText.textContent = "{{ t('btn_loading') }}";
 
             try {
                 const res = await fetch(`${window.BASE_URL}/api/login`, {
@@ -173,8 +173,8 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Login Gagal',
-                        text: data.message || 'Username atau password salah!',
+                        title: "{{ t('swal_error_title') }}",
+                        text: data.message || "{{ t('login_err_invalid') }}",
                         confirmButtonColor: '#16a34a'
                     });
                 }
@@ -182,13 +182,13 @@
                 console.error(err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Kesalahan Server',
-                    text: 'Tidak dapat menghubungi server.',
+                    title: "{{ t('swal_error_title') }}",
+                    text: "{% if app_language == 'en' %}Cannot connect to server.{% else %}Tidak dapat menghubungi server.{% endif %}",
                     confirmButtonColor: '#16a34a'
                 });
             } finally {
                 loginBtn.disabled = false;
-                loginBtnText.textContent = 'Masuk ke Console';
+                loginBtnText.textContent = "{{ t('login_btn_submit') }}";
             }
         });
     </script>

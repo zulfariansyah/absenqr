@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ event_settings.title_peserta if event_settings.title_peserta else ('Pendaftaran Peserta - ' + event_settings.event_name) }}{% endblock %}
+{% block title %}{{ event_settings.title_peserta if event_settings.title_peserta else (t('reg_card_title') + ' - ' + event_settings.event_name) }}{% endblock %}
 
 {% block content %}
 <div class="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -13,14 +13,14 @@
         {% endif %}
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3 shadow-sm border border-emerald-200">
             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
-            Registrasi Peserta Seminar
+            {{ t('reg_header_subtitle') }}
         </div>
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Formulir Pendaftaran Peserta<br>
+            {{ t('reg_card_title') }}<br>
             <span class="text-emerald-700 font-extrabold text-xl sm:text-2xl lg:text-3xl block mt-1.5">{{ event_settings.event_name }}</span>
         </h1>
         <p class="mt-3 text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
-            Silakan lengkapi data diri Anda. Setelah mendaftar, sistem akan membuat <strong>QR Code 10 Karakter Unik</strong> sebagai tiket absensi kehadiran seminar.
+            {{ t('reg_card_desc') }}
         </p>
     </div>
 
@@ -32,12 +32,12 @@
                     <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold text-lg">Informasi Biodata Pendaftar</h2>
-                    <p class="text-xs text-emerald-100">Pastikan data yang dimasukkan sudah benar dan valid</p>
+                    <h2 class="font-bold text-lg">{% if app_language == 'en' %}Participant Information{% else %}Informasi Biodata Pendaftar{% endif %}</h2>
+                    <p class="text-xs text-emerald-100">{% if app_language == 'en' %}Please ensure the data entered is valid and accurate{% else %}Pastikan data yang dimasukkan sudah benar dan valid{% endif %}</p>
                 </div>
             </div>
             <span class="hidden sm:inline-flex px-2.5 py-1 rounded-lg bg-white/20 text-xs font-medium backdrop-blur">
-                Langkah 1 dari 1
+                {% if app_language == 'en' %}Step 1 of 1{% else %}Langkah 1 dari 1{% endif %}
             </span>
         </div>
 
@@ -47,34 +47,34 @@
                 <div>
                     <label for="nim_nip" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="id-card" class="w-4 h-4 text-emerald-600"></i>
-                        NIM / NIP / NIDN / NUPTK / No. Identitas <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_id') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="nim_nip" name="nim_nip" required
-                        placeholder="Contoh: 198501012010121001 / 2110511001 / 001205..."
+                        placeholder="{{ t('reg_ph_id') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                    <p class="text-xs text-slate-500 mt-1">NIM, NIP, NIDN, NUPTK, KTP, atau nomor identitas unik lainnya</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Student ID, Employee ID, NIK, or other unique identity number{% else %}NIM, NIP, NIDN, NUPTK, KTP, atau nomor identitas unik lainnya{% endif %}</p>
                 </div>
 
                 <div>
                     <label for="pekerjaan" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="briefcase" class="w-4 h-4 text-emerald-600"></i>
-                        Pekerjaan / Profesi <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_job') }} <span class="text-rose-500">*</span>
                     </label>
                     <div class="relative">
                         <select id="pekerjaan" name="pekerjaan" required
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm appearance-none bg-white">
-                            <option value="" disabled selected>-- Pilih Pekerjaan --</option>
-                            <option value="Mahasiswa S1">Mahasiswa S1</option>
-                            <option value="Mahasiswa S2">Mahasiswa S2</option>
-                            <option value="Dosen">Dosen</option>
-                            <option value="Praktisi">Praktisi</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <option value="" disabled selected>-- {{ t('reg_ph_job') }} --</option>
+                            <option value="Mahasiswa S1">{{ t('job_mhs_s1') }}</option>
+                            <option value="Mahasiswa S2">{{ t('job_mhs_s2') }}</option>
+                            <option value="Dosen">{{ t('job_dosen') }}</option>
+                            <option value="Praktisi">{{ t('job_praktisi') }}</option>
+                            <option value="Lainnya">{{ t('job_lainnya') }}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
                             <i data-lucide="chevron-down" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">Pilih kategori profesi Anda saat ini</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Select your current profession category{% else %}Pilih kategori profesi Anda saat ini{% endif %}</p>
                 </div>
             </div>
 
@@ -83,23 +83,23 @@
                 <div>
                     <label for="nama_lengkap" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
-                        Nama Lengkap <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_name') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="nama_lengkap" name="nama_lengkap" required
-                        placeholder="Contoh: Dr. Budi Santoso, S.Kom., M.Cs."
+                        placeholder="{{ t('reg_ph_name') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                    <p class="text-xs text-slate-500 mt-1">Nama lengkap beserta gelar untuk sertifikat</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Full name with academic degrees for certificate{% else %}Nama lengkap beserta gelar untuk sertifikat{% endif %}</p>
                 </div>
 
                 <div>
                     <label for="no_hp" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="phone" class="w-4 h-4 text-emerald-600"></i>
-                        No. HP / WhatsApp <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_phone') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="tel" id="no_hp" name="no_hp" required
-                        placeholder="Contoh: 081234567890"
+                        placeholder="{{ t('reg_ph_phone') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                    <p class="text-xs text-slate-500 mt-1">Nomor aktif untuk info & konfirmasi seminar</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Active mobile number for seminar updates{% else %}Nomor aktif untuk info & konfirmasi seminar{% endif %}</p>
                 </div>
             </div>
 
@@ -108,25 +108,25 @@
                 <div>
                     <label for="institusi" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="building" class="w-4 h-4 text-emerald-600"></i>
-                        Institusi / Perusahaan <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_inst') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="institusi" name="institusi" required
-                        placeholder="Contoh: Universitas Mulawarman / PT Telkom"
+                        placeholder="{{ t('reg_ph_inst') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                    <p class="text-xs text-slate-500 mt-1">Asal kampus, sekolah, instansi, atau instansi kerja</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Origin university, campus, school, or organization{% else %}Asal kampus, sekolah, instansi, atau instansi kerja{% endif %}</p>
                 </div>
 
                 <!-- Searchable Dropdown Bidang Keilmuan -->
                 <div class="relative" id="bidangKeilmuanContainer">
                     <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                         <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-600"></i>
-                        Bidang Keilmuan <span class="text-rose-500">*</span>
+                        {{ t('reg_lbl_bidang') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="hidden" id="bidang_keilmuan" name="bidang_keilmuan" required value="">
                     
                     <button type="button" id="bidangDropdownBtn" onclick="toggleBidangDropdown()"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-left text-sm transition shadow-sm bg-white flex items-center justify-between">
-                        <span id="bidangSelectText" class="text-slate-400 truncate">-- Pilih Bidang Keilmuan --</span>
+                        <span id="bidangSelectText" class="text-slate-400 truncate">-- {{ t('reg_ph_bidang') }} --</span>
                         <i data-lucide="chevron-down" id="bidangChevron" class="w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200"></i>
                     </button>
 
@@ -135,25 +135,25 @@
                         <div class="p-2 border-b border-slate-100 bg-slate-50">
                             <div class="relative">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
-                                <input type="text" id="bidangSearchInput" oninput="filterBidangOptions(this.value)" placeholder="Cari bidang keilmuan..."
+                                <input type="text" id="bidangSearchInput" oninput="filterBidangOptions(this.value)" placeholder="{% if app_language == 'en' %}Search field of study...{% else %}Cari bidang keilmuan...{% endif %}"
                                     class="w-full pl-8 pr-3 py-1 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white" autocomplete="off">
                             </div>
                         </div>
                         <div id="bidangOptionsList" class="max-h-48 overflow-y-auto p-1 text-xs divide-y divide-slate-50">
-                            <button type="button" onclick="selectBidangOption('Informatika')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Informatika</button>
-                            <button type="button" onclick="selectBidangOption('Sistem Informasi')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Sistem Informasi</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Pertambangan')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Pertambangan</button>
-                            <button type="button" onclick="selectBidangOption('Arsitektur')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Arsitektur</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Kimia')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Kimia</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Geologi')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Geologi</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Elektro')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Elektro</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Lingkungan')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Lingkungan</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Sipil')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Sipil</button>
-                            <button type="button" onclick="selectBidangOption('Teknik Industri')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Teknik Industri</button>
-                            <button type="button" onclick="selectBidangOption('Lainnya')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">Lainnya</button>
+                            <button type="button" onclick="selectBidangOption('Informatika', '{{ t('bidang_informatika') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_informatika') }}</button>
+                            <button type="button" onclick="selectBidangOption('Sistem Informasi', '{{ t('bidang_si') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_si') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Pertambangan', '{{ t('bidang_tambang') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_tambang') }}</button>
+                            <button type="button" onclick="selectBidangOption('Arsitektur', '{{ t('bidang_arsitektur') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_arsitektur') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Kimia', '{{ t('bidang_kimia') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_kimia') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Geologi', '{{ t('bidang_geologi') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_geologi') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Elektro', '{{ t('bidang_elektro') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_elektro') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Lingkungan', '{{ t('bidang_lingkungan') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_lingkungan') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Sipil', '{{ t('bidang_sipil') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_sipil') }}</button>
+                            <button type="button" onclick="selectBidangOption('Teknik Industri', '{{ t('bidang_industri') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_industri') }}</button>
+                            <button type="button" onclick="selectBidangOption('Lainnya', '{{ t('bidang_lainnya') }}')" class="bidang-opt w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-900 font-medium text-slate-700 transition">{{ t('bidang_lainnya') }}</button>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">Pilih bidang studi / peminatan Anda</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if app_language == 'en' %}Select your field of study / specialization{% else %}Pilih bidang studi / peminatan Anda{% endif %}</p>
                 </div>
             </div>
 
@@ -161,9 +161,13 @@
             <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3">
                 <i data-lucide="alert-circle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
                 <div>
-                    <p class="font-semibold text-amber-950">Penting untuk Diketahui:</p>
+                    <p class="font-semibold text-amber-950">{% if app_language == 'en' %}Important Notice:{% else %}Penting untuk Diketahui:{% endif %}</p>
                     <p class="mt-0.5 text-amber-800">
+                        {% if app_language == 'en' %}
+                        After submitting the registration form, your initial status is <strong>Registered</strong>. You will receive an <strong>Attendance QR Code</strong> to present to the registration desk on the event day to be confirmed as <strong>Attended</strong>.
+                        {% else %}
                         Setelah menekan tombol daftar, status Anda terdaftar sebagai <strong>Pendaftar</strong>. Anda akan mendapatkan <strong>QR Code Absensi</strong> yang harus ditunjukkan kepada panitia di lokasi seminar untuk di-scan menjadi <strong>Peserta Hadir</strong>.
+                        {% endif %}
                     </p>
                 </div>
             </div>
@@ -175,7 +179,7 @@
                     <i data-lucide="megaphone" class="w-4 h-4"></i>
                 </div>
                 <div class="flex-1">
-                    <p class="font-bold text-blue-950 uppercase tracking-wide text-xs">Informasi & Pengumuman Acara:</p>
+                    <p class="font-bold text-blue-950 uppercase tracking-wide text-xs">{% if app_language == 'en' %}Event Information & Announcement:{% else %}Informasi & Pengumuman Acara:{% endif %}</p>
                     <div class="mt-1 text-blue-900 leading-relaxed text-xs sm:text-sm">
                         {{ event_settings.event_info | autolink }}
                     </div>
@@ -194,7 +198,7 @@
                 <button type="submit" id="submitBtn"
                     class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-base shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
                     <i data-lucide="check-circle" class="w-5 h-5"></i>
-                    <span id="btnText">Daftar Seminar & Buat QR Code</span>
+                    <span id="btnText">{{ t('reg_btn_submit') }}</span>
                 </button>
             </div>
         </form>
@@ -212,8 +216,8 @@
             <div id="modalHeaderIcon" class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
                 <i data-lucide="check-check" class="w-6 h-6 stroke-[3]"></i>
             </div>
-            <h3 id="modalTitle" class="text-xl font-extrabold">Pendaftaran Berhasil!</h3>
-            <p id="modalSubtitle" class="text-xs text-emerald-100 mt-1">Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.</p>
+            <h3 id="modalTitle" class="text-xl font-extrabold">{{ t('reg_success_title') }}</h3>
+            <p id="modalSubtitle" class="text-xs text-emerald-100 mt-1">{{ t('reg_success_desc') }}</p>
         </div>
 
         <!-- Modal Body: QR Code & Warning Banner -->
@@ -225,10 +229,14 @@
                 </div>
                 <div>
                     <h4 class="text-xs sm:text-sm font-extrabold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
-                        <span>📸 HIMBAUAN PENTING PESERTA:</span>
+                        <span>{% if app_language == 'en' %}📸 IMPORTANT PARTICIPANT NOTICE:{% else %}📸 HIMBAUAN PENTING PESERTA:{% endif %}</span>
                     </h4>
                     <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+                        {% if app_language == 'en' %}
+                        Please <strong>save this QR Code now</strong> by taking a <strong>screenshot</strong> or clicking the <strong>Download QR</strong> button below, as this QR Code is required at seminar attendance check-in.
+                        {% else %}
                         Mohon <strong>simpan QR Code ini sekarang</strong> dengan mengambil <strong>tangkapan layar (screenshot)</strong> atau menekan tombol <strong>Download QR</strong> di bawah, karena QR Code ini wajib ditunjukkan saat registrasi kehadiran di lokasi seminar.
+                        {% endif %}
                     </p>
                 </div>
             </div>
@@ -241,7 +249,7 @@
                 </div>
                 <div class="flex-1">
                     <h4 class="text-xs sm:text-sm font-extrabold text-blue-950 uppercase tracking-wide flex items-center gap-1.5">
-                        <span>📢 INFORMASI / PENGUMUMAN ACARA:</span>
+                        <span>{% if app_language == 'en' %}📢 EVENT INFORMATION / ANNOUNCEMENT:{% else %}📢 INFORMASI / PENGUMUMAN ACARA:{% endif %}</span>
                     </h4>
                     <div class="text-xs text-blue-900 mt-1 leading-relaxed font-medium">
                         {{ event_settings.event_info | autolink }}
@@ -254,7 +262,7 @@
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 inline-block shadow-inner">
                 <img id="modalQrImage" src="" alt="QR Code Tiket" class="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
                 <div class="mt-3">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Kode Tiket Anda:</span>
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">{% if app_language == 'en' %}Your Ticket Code:{% else %}Kode Tiket Anda:{% endif %}</span>
                     <span id="modalQrCode" class="font-mono text-xl sm:text-2xl font-black text-emerald-800 tracking-widest bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 inline-block mt-1">
                         ----------
                     </span>
@@ -264,31 +272,31 @@
             <!-- Participant Info Summary -->
             <div class="bg-slate-50 rounded-2xl p-4 text-xs text-left space-y-2 border border-slate-200">
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5 items-center">
-                    <span class="text-slate-500">Status Kehadiran:</span>
-                    <span id="modalStatusBadge" class="font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">⏳ Pendaftar</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_status') }}</span>
+                    <span id="modalStatusBadge" class="font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">⏳ {{ t('ticket_status_registered') }}</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">Nama:</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_name') }}</span>
                     <span id="modalNama" class="font-bold text-slate-900 text-right">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">No. Identitas:</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_id') }}</span>
                     <span id="modalNim" class="font-bold font-mono text-slate-900">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">No. HP / WA:</span>
+                    <span class="text-slate-500">{{ t('reg_lbl_phone') }}:</span>
                     <span id="modalHp" class="font-bold font-mono text-emerald-700">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">Institusi:</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_inst') }}</span>
                     <span id="modalInstitusi" class="font-bold text-slate-900 text-right">-</span>
                 </div>
                 <div class="flex justify-between border-b border-slate-200/80 pb-1.5">
-                    <span class="text-slate-500">Pekerjaan:</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_job') }}</span>
                     <span id="modalPekerjaan" class="font-semibold text-emerald-700">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Bidang Keilmuan:</span>
+                    <span class="text-slate-500">{{ t('ticket_lbl_bidang') }}</span>
                     <span id="modalBidang" class="font-bold text-slate-900 text-right">-</span>
                 </div>
             </div>
@@ -298,17 +306,17 @@
                 <a id="btnDownloadQr" href="#" download=""
                     class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
                     <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
-                    <span>Download QR (Simpan)</span>
+                    <span>{{ t('reg_btn_save_qr') }}</span>
                 </a>
                 <a id="btnOpenTicket" href="#" target="_blank"
                     class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
                     <i data-lucide="external-link" class="w-4 h-4"></i>
-                    <span>Buka E-Ticket Digital</span>
+                    <span>{{ t('reg_btn_download_ticket') }}</span>
                 </a>
             </div>
 
             <button onclick="closeModalAndReset()" class="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-semibold transition">
-                Selesai & Tutup Jendela
+                {{ t('btn_close') }}
             </button>
         </div>
     </div>
@@ -322,6 +330,7 @@
     const btnText = document.getElementById('btnText');
     const successModal = document.getElementById('successModal');
     let currentQr = '';
+    const APP_LANG = "{{ app_language or 'id' }}";
 
     // Searchable dropdown functions for Bidang Keilmuan
     function toggleBidangDropdown() {
@@ -364,7 +373,7 @@
                 noResultMsg = document.createElement('div');
                 noResultMsg.id = 'bidangNoResult';
                 noResultMsg.className = 'p-3 text-center text-slate-400 text-xs italic';
-                noResultMsg.textContent = 'Tidak ditemukan hasil';
+                noResultMsg.textContent = APP_LANG === 'en' ? 'No results found' : 'Tidak ditemukan hasil';
                 document.getElementById('bidangOptionsList').appendChild(noResultMsg);
             }
             noResultMsg.style.display = 'block';
@@ -373,10 +382,10 @@
         }
     }
 
-    function selectBidangOption(val) {
+    function selectBidangOption(val, label) {
         document.getElementById('bidang_keilmuan').value = val;
         const textSpan = document.getElementById('bidangSelectText');
-        textSpan.textContent = val;
+        textSpan.textContent = label || val;
         textSpan.classList.remove('text-slate-400');
         textSpan.classList.add('text-slate-800', 'font-medium');
         
@@ -416,8 +425,8 @@
         if (!payload.nim_nip || !payload.nama_lengkap || !payload.no_hp || !payload.institusi || !payload.pekerjaan || !payload.bidang_keilmuan) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Data Belum Lengkap',
-                text: 'Harap isi semua kolom formulir pendaftaran termasuk Bidang Keilmuan!',
+                title: APP_LANG === 'en' ? 'Incomplete Form' : 'Data Belum Lengkap',
+                text: APP_LANG === 'en' ? 'Please fill out all registration form fields including Field of Study!' : 'Harap isi semua kolom formulir pendaftaran termasuk Bidang Keilmuan!',
                 confirmButtonColor: '#16a34a'
             });
             return;
@@ -425,7 +434,7 @@
 
         // Loading state
         submitBtn.disabled = true;
-        btnText.textContent = 'Memproses Pendaftaran...';
+        btnText.textContent = APP_LANG === 'en' ? 'Processing Registration...' : 'Memproses Pendaftaran...';
 
         try {
             const apiUrl = `${window.BASE_URL || ''}/api/register`;
@@ -442,8 +451,8 @@
                 console.error('Response is not JSON:', response.status, parseErr);
                 Swal.fire({
                     icon: 'error',
-                    title: `Error Respon Server (${response.status})`,
-                    text: `Server memberikan respon yang tidak sesuai (Status ${response.status}). Silakan cek proxy atau log server.`,
+                    title: APP_LANG === 'en' ? `Server Response Error (${response.status})` : `Error Respon Server (${response.status})`,
+                    text: APP_LANG === 'en' ? `Unexpected server response (Status ${response.status}). Please check proxy or server logs.` : `Server memberikan respon yang tidak sesuai (Status ${response.status}). Silakan cek proxy atau log server.`,
                     confirmButtonColor: '#16a34a'
                 });
                 return;
@@ -460,7 +469,7 @@
                 document.getElementById('modalHp').textContent = p.no_hp || '-';
                 document.getElementById('modalInstitusi').textContent = p.institusi;
                 document.getElementById('modalPekerjaan').textContent = p.pekerjaan;
-                document.getElementById('modalBidang').textContent = p.bidang_keilmuan || 'Lainnya';
+                document.getElementById('modalBidang').textContent = p.bidang_keilmuan || (APP_LANG === 'en' ? 'Other' : 'Lainnya');
 
                 const statusBadge = document.getElementById('modalStatusBadge');
                 const headerBox = document.getElementById('modalHeaderBox');
@@ -472,39 +481,43 @@
                 
                 const downloadBtn = document.getElementById('btnDownloadQr');
                 downloadBtn.href = qrUrl;
-                downloadBtn.download = `qr_semnasretro_${p.qr_code}.png`;
+                downloadBtn.download = `qr_ticket_${p.qr_code}.png`;
 
                 const ticketBtn = document.getElementById('btnOpenTicket');
                 ticketBtn.href = `${window.BASE_URL || ''}/ticket/${p.qr_code}`;
 
                 if (res.is_duplicate || res.code === 'DUPLICATE_NIM') {
                     // Tampilkan status & QR data yang sudah terdaftar sebelumnya
-                    modalTitle.textContent = 'Data Sudah Terdaftar!';
-                    modalSubtitle.innerHTML = `No. Identitas sudah terdaftar atas nama <strong>${p.nama_lengkap}</strong>.`;
+                    modalTitle.textContent = APP_LANG === 'en' ? 'Already Registered!' : 'Data Sudah Terdaftar!';
+                    modalSubtitle.innerHTML = APP_LANG === 'en' 
+                        ? `Identity Number is already registered for <strong>${p.nama_lengkap}</strong>.`
+                        : `No. Identitas sudah terdaftar atas nama <strong>${p.nama_lengkap}</strong>.`;
                     headerBox.className = "bg-gradient-to-r from-blue-600 to-indigo-600 p-5 sm:p-6 text-white text-center relative shrink-0";
                     
                     if (p.status === 'peserta') {
                         statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300";
-                        statusBadge.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline mr-1 text-emerald-600"></i>Sudah Hadir (Peserta)';
+                        statusBadge.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline mr-1 text-emerald-600"></i>' + (APP_LANG === 'en' ? 'Already Attended (Participant)' : 'Sudah Hadir (Peserta)');
                     } else {
                         statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300";
-                        statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>Belum Hadir (Pendaftar)';
+                        statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>' + (APP_LANG === 'en' ? 'Not Attended (Registered)' : 'Belum Hadir (Pendaftar)');
                     }
 
                     Swal.fire({
                         icon: 'info',
-                        title: 'Data Ditemukan',
-                        text: `Nomor identitas "${p.nim_nip}" sudah pernah terdaftar atas nama ${p.nama_lengkap}. Menampilkan QR Code tiket Anda.`,
+                        title: APP_LANG === 'en' ? 'Data Found' : 'Data Ditemukan',
+                        text: APP_LANG === 'en' 
+                            ? `Identity number "${p.nim_nip}" was already registered under ${p.nama_lengkap}. Showing your ticket QR Code.`
+                            : `Nomor identitas "${p.nim_nip}" sudah pernah terdaftar atas nama ${p.nama_lengkap}. Menampilkan QR Code tiket Anda.`,
                         confirmButtonColor: '#2563eb'
                     });
                 } else {
                     // Pendaftaran Peserta Baru
-                    modalTitle.textContent = 'Pendaftaran Berhasil!';
-                    modalSubtitle.innerHTML = 'Data Anda tersimpan di sistem sebagai <strong>Pendaftar</strong>.';
+                    modalTitle.textContent = "{{ t('reg_success_title') }}";
+                    modalSubtitle.innerHTML = "{{ t('reg_success_desc') }}";
                     headerBox.className = "bg-gradient-to-r from-emerald-600 to-teal-600 p-5 sm:p-6 text-white text-center relative shrink-0";
                     
                     statusBadge.className = "font-bold text-xs uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300";
-                    statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>Belum Hadir (Pendaftar)';
+                    statusBadge.innerHTML = '<i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>' + (APP_LANG === 'en' ? 'Not Attended (Registered)' : 'Belum Hadir (Pendaftar)');
 
                     confetti({
                         particleCount: 80,
@@ -519,8 +532,8 @@
             } else {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal Mendaftar',
-                    text: res.message || `Terjadi kesalahan pada server (Status: ${response.status}).`,
+                    title: APP_LANG === 'en' ? 'Registration Failed' : 'Gagal Mendaftar',
+                    text: res.message || (APP_LANG === 'en' ? `An error occurred on the server (Status: ${response.status}).` : `Terjadi kesalahan pada server (Status: ${response.status}).`),
                     confirmButtonColor: '#16a34a'
                 });
             }
@@ -528,13 +541,13 @@
             console.error('Error registering:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Koneksi Bermasalah',
-                text: 'Tidak dapat menghubungi server: ' + (error.message || 'Koneksi terputus'),
+                title: APP_LANG === 'en' ? 'Connection Issue' : 'Koneksi Bermasalah',
+                text: (APP_LANG === 'en' ? 'Unable to reach server: ' : 'Tidak dapat menghubungi server: ') + (error.message || 'Connection lost'),
                 confirmButtonColor: '#16a34a'
             });
         } finally {
             submitBtn.disabled = false;
-            btnText.textContent = 'Daftar Seminar & Buat QR Code';
+            btnText.textContent = "{{ t('reg_btn_submit') }}";
         }
     });
 
@@ -543,7 +556,7 @@
         form.reset();
         document.getElementById('bidang_keilmuan').value = '';
         const textSpan = document.getElementById('bidangSelectText');
-        textSpan.textContent = '-- Pilih Bidang Keilmuan --';
+        textSpan.textContent = '-- {{ t('reg_ph_bidang') }} --';
         textSpan.className = 'text-slate-400 truncate';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }

@@ -65,6 +65,7 @@ def init_db():
     cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('event_info', '')")
     cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('title_peserta', '')")
     cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('title_console', '')")
+    cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('app_language', 'id')")
     
     # Inisialisasi 5 User Admin Bawaan
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -246,6 +247,8 @@ def get_all_settings():
         settings['title_peserta'] = ''
     if 'title_console' not in settings:
         settings['title_console'] = ''
+    if 'app_language' not in settings:
+        settings['app_language'] = 'id'
     return settings
 
 def generate_unique_qr_code():

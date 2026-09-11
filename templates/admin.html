@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app_language or 'id' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,6 +60,8 @@
             }
             window.IS_SUPERADMIN = {{ 'true' if is_superadmin else 'false' }};
             window.ADMIN_ROLE = "{{ admin_role }}";
+            window.APP_LANG = "{{ app_language or 'id' }}";
+            window.I18N = {{ translations_json | tojson }};
         })();
     </script>
 
@@ -110,10 +112,10 @@
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight block leading-tight truncate">{{ event_settings.event_name }}</span>
                             <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full {% if is_superadmin %}bg-purple-100 text-purple-800{% else %}bg-emerald-100 text-emerald-800{% endif %} text-[10px] font-bold uppercase tracking-wider">
-                                {{ 'Super Admin' if is_superadmin else 'Petugas Admin' }}
+                                {{ t('superadmin_badge') if is_superadmin else t('petugas_badge') }}
                             </span>
                         </div>
-                        <span class="text-xs font-semibold text-emerald-600 tracking-wider uppercase">Sistem Absensi & Registrasi</span>
+                        <span class="text-xs font-semibold text-emerald-600 tracking-wider uppercase">{{ t('app_subtitle') }}</span>
                     </div>
                 </div>
 
@@ -129,13 +131,13 @@
                         </div>
                     </div>
 
-                    <button onclick="openLanModal()" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5" title="Buka QR Link Akses Jaringan Lokal">
+                    <button onclick="openLanModal()" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5" title="{{ t('wifi_modal_title') }}">
                         <i data-lucide="wifi" class="w-4 h-4 text-emerald-600"></i>
-                        <span class="hidden lg:inline">Akses Wi-Fi</span>
+                        <span class="hidden lg:inline">{{ t('wifi_access_short') }}</span>
                     </button>
                     <button onclick="handleLogout()" type="button" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition flex items-center gap-1.5">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
-                        <span>Logout</span>
+                        <span>{{ t('nav_logout') }}</span>
                     </button>
                 </div>
             </div>
@@ -151,8 +153,8 @@
                     <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Console Absensi Seminar</h1>
-                    <p class="text-xs text-slate-500">Masuk sebagai: <strong>{{ admin_name }}</strong> ({% if is_superadmin %}Super Administrator{% else %}Petugas Absensi{% endif %})</p>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{% if app_language == 'en' %}Seminar Attendance Console{% else %}Console Absensi Seminar{% endif %}</h1>
+                    <p class="text-xs text-slate-500">{{ t('logged_in_as') }} <strong>{{ admin_name }}</strong> ({% if is_superadmin %}{{ t('role_superadmin_label') }}{% else %}{{ t('role_petugas_label') }}{% endif %})</p>
                 </div>
             </div>
 
@@ -161,23 +163,23 @@
                 <button id="navScanBtn" onclick="switchMainMenu('scan')"
                     class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-emerald-600 text-white shadow-sm">
                     <i data-lucide="scan-line" class="w-4 h-4"></i>
-                    <span>1. Scan Absensi</span>
+                    <span>{{ t('nav_scan') }}</span>
                 </button>
                 <button id="navInfoBtn" onclick="switchMainMenu('info')"
                     class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
                     <i data-lucide="users" class="w-4 h-4"></i>
-                    <span>2. Informasi Peserta</span>
+                    <span>{{ t('nav_info') }}</span>
                 </button>
                 <button id="navSettingsBtn" onclick="switchMainMenu('settings')"
                     class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
                     <i data-lucide="sliders" class="w-4 h-4"></i>
-                    <span>3. Pengaturan Acara</span>
+                    <span>{{ t('nav_settings') }}</span>
                 </button>
                 {% if is_superadmin %}
                 <button id="navAdminUsersBtn" onclick="switchMainMenu('admin_users')"
                     class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200">
                     <i data-lucide="user-cog" class="w-4 h-4"></i>
-                    <span>4. Manajemen Admin</span>
+                    <span>{{ t('nav_admin_users') }}</span>
                 </button>
                 {% endif %}
             </div>
@@ -191,7 +193,7 @@
                     <i data-lucide="user-check" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Pendaftar</div>
+                    <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">{{ t('stat_total_registrants') }}</div>
                     <div class="text-2xl font-extrabold text-slate-900" id="statTotal">0</div>
                 </div>
             </div>
@@ -202,7 +204,7 @@
                     <i data-lucide="clock" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <div class="text-xs text-amber-700 font-semibold uppercase tracking-wider">Belum Hadir (Pendaftar)</div>
+                    <div class="text-xs text-amber-700 font-semibold uppercase tracking-wider">{{ t('stat_not_attended') }}</div>
                     <div class="text-2xl font-extrabold text-amber-600" id="statPendaftar">0</div>
                 </div>
             </div>
@@ -213,7 +215,7 @@
                     <i data-lucide="check-circle" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <div class="text-xs text-emerald-700 font-semibold uppercase tracking-wider">Sudah Hadir (Peserta)</div>
+                    <div class="text-xs text-emerald-700 font-semibold uppercase tracking-wider">{{ t('stat_attended') }}</div>
                     <div class="text-2xl font-extrabold text-emerald-600" id="statPeserta">0</div>
                 </div>
             </div>
@@ -224,7 +226,7 @@
                     <i data-lucide="percent" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <div class="text-xs text-purple-700 font-semibold uppercase tracking-wider">Tingkat Kehadiran</div>
+                    <div class="text-xs text-purple-700 font-semibold uppercase tracking-wider">{{ t('stat_attendance_rate') }}</div>
                     <div class="text-2xl font-extrabold text-purple-700" id="statRate">0%</div>
                 </div>
             </div>
@@ -240,15 +242,15 @@
                     <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-                            <h2 class="font-bold text-sm sm:text-base">Kamera Pemindai QR Code</h2>
+                            <h2 class="font-bold text-sm sm:text-base">{{ t('scan_title') }}</h2>
                         </div>
                         <div class="flex items-center gap-2">
                             <select id="cameraSelect" class="bg-slate-800 text-white text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 max-w-[160px] sm:max-w-xs">
-                                <option value="">Pilih Kamera...</option>
+                                <option value="">{{ t('scan_select_cam') }}</option>
                             </select>
                             <button id="toggleCameraBtn" onclick="toggleScanner()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
                                 <i data-lucide="camera" class="w-3.5 h-3.5"></i>
-                                <span id="cameraBtnLabel">Nyalakan Kamera</span>
+                                <span id="cameraBtnLabel">{{ t('scan_start_cam') }}</span>
                             </button>
                         </div>
                     </div>
@@ -263,29 +265,29 @@
                                 <i data-lucide="camera-off" class="w-8 h-8"></i>
                             </div>
                             <div>
-                                <p class="font-semibold text-slate-300 text-sm">Kamera Belum Aktif</p>
-                                <p class="text-xs text-slate-500 mt-1 max-w-xs">Klik tombol "Nyalakan Kamera" di atas atau gunakan opsi pilih foto QR di bawah.</p>
+                                <p class="font-semibold text-slate-300 text-sm">{{ t('scan_cam_off_title') }}</p>
+                                <p class="text-xs text-slate-500 mt-1 max-w-xs">{{ t('scan_cam_off_desc') }}</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Fallback Manual Input & Image/Photo Upload -->
                     <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-2">
-                        <div class="text-xs font-semibold text-slate-600">Opsi Alternatif Scan:</div>
+                        <div class="text-xs font-semibold text-slate-600">{{ t('scan_alt_options') }}</div>
                         <div class="flex flex-col sm:flex-row gap-2">
                             <div class="flex-1 flex gap-2">
-                                <input type="text" id="manualQrInput" placeholder="Ketik 10 Karakter Kode QR..." maxlength="10"
+                                <input type="text" id="manualQrInput" placeholder="{{ t('scan_manual_placeholder') }}" maxlength="10"
                                     class="flex-1 uppercase font-mono tracking-wider px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white">
                                 <button onclick="submitManualCode()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
                                     <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                                    <span>Verifikasi</span>
+                                    <span>{{ t('scan_btn_verify') }}</span>
                                 </button>
                             </div>
                             <div class="flex items-center">
                                 <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQrFileUpload(this)">
                                 <button onclick="document.getElementById('qrFileInput').click()" type="button" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 border border-emerald-300">
                                     <i data-lucide="image" class="w-3.5 h-3.5"></i>
-                                    <span>Pilih Gambar / Foto QR</span>
+                                    <span>{{ t('scan_btn_pick_img') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -298,10 +300,10 @@
                         <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
-                                <h2 class="font-bold text-sm text-slate-800">Hasil Pemindaian Terakhir</h2>
+                                <h2 class="font-bold text-sm text-slate-800">{{ t('scan_result_title') }}</h2>
                             </div>
                             <span id="scanStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
-                                Menunggu Scan
+                                {{ t('scan_status_waiting') }}
                             </span>
                         </div>
 
@@ -312,9 +314,9 @@
                                     <i data-lucide="scan" class="w-8 h-8 animate-pulse"></i>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-slate-700 text-sm">Arahkan Kamera ke QR Code</p>
+                                    <p class="font-bold text-slate-700 text-sm">{{ t('scan_empty_title') }}</p>
                                     <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                                        Informasi pendaftar akan langsung muncul di sini dan statusnya otomatis berubah menjadi <strong>Peserta Hadir</strong>.
+                                        {{ t('scan_empty_desc') }}
                                     </p>
                                 </div>
                             </div>
@@ -325,41 +327,41 @@
                                     <div id="resultIcon" class="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md">
                                         <i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>
                                     </div>
-                                    <h3 id="resultTitle" class="text-base font-extrabold text-emerald-900">BERHASIL ABSENSI!</h3>
-                                    <p id="resultSubtitle" class="text-xs text-emerald-700 mt-0.5">Status diubah menjadi Peserta (Hadir)</p>
+                                    <h3 id="resultTitle" class="text-base font-extrabold text-emerald-900">{{ t('swal_scan_success') }}</h3>
+                                    <p id="resultSubtitle" class="text-xs text-emerald-700 mt-0.5">{{ t('ticket_status_attended') }}</p>
                                 </div>
 
                                 <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs space-y-2.5 divide-y divide-slate-200/80">
                                     <div class="flex justify-between items-center pb-1">
-                                        <span class="text-slate-500 font-medium">Kode QR:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_qr') }}:</span>
                                         <span id="resQrCode" class="font-mono text-sm font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">Nama Lengkap:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_name') }}:</span>
                                         <span id="resNama" class="font-bold text-slate-900 text-right text-sm">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">No. Identitas:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_id_number') }}:</span>
                                         <span id="resNim" class="font-bold font-mono text-slate-800">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">No. HP / WA:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_phone') }}:</span>
                                         <span id="resHp" class="font-bold font-mono text-emerald-700">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">Institusi:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_inst') }}:</span>
                                         <span id="resInstitusi" class="font-bold text-slate-800 text-right">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">Pekerjaan:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_job') }}:</span>
                                         <span id="resPekerjaan" class="font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded border border-slate-200">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">Bidang Keilmuan:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_bidang') }}:</span>
                                         <span id="resBidang" class="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 text-right">-</span>
                                     </div>
                                     <div class="flex justify-between items-center pt-2">
-                                        <span class="text-slate-500 font-medium">Waktu Absen:</span>
+                                        <span class="text-slate-500 font-medium">{{ t('col_time_att') }}:</span>
                                         <span id="resWaktu" class="font-semibold text-slate-700">-</span>
                                     </div>
                                 </div>
@@ -367,7 +369,7 @@
                                 <div class="text-center">
                                     <button onclick="resetScanCard()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5">
                                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                                        <span>Siap Scan Pendaftar Berikutnya</span>
+                                        <span>{% if app_language == 'en' %}Ready to Scan Next Participant{% else %}Siap Scan Pendaftar Berikutnya{% endif %}</span>
                                     </button>
                                 </div>
                             </div>
@@ -385,7 +387,7 @@
                 <!-- Left Sub-Menu Sidebar (3 cols) -->
                 <div class="lg:col-span-3 space-y-3">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-2">Kategori Kehadiran</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-2">{{ t('cat_attendance') }}</div>
                         <nav class="space-y-2">
                             <!-- Sub-menu 1: Pendaftar (Belum Hadir) -->
                             <div class="rounded-xl border border-amber-200 bg-amber-50/40 overflow-hidden transition-all duration-200" id="tabPendaftarCard">
@@ -396,8 +398,8 @@
                                             <i data-lucide="clock" class="w-4 h-4"></i>
                                         </div>
                                         <div>
-                                            <div class="leading-tight">Pendaftar</div>
-                                            <div class="text-[11px] font-normal text-amber-700">Belum Hadir</div>
+                                            <div class="leading-tight">{{ t('tab_pendaftar_title') }}</div>
+                                            <div class="text-[11px] font-normal text-amber-700">{{ t('tab_pendaftar_subtitle') }}</div>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1.5">
@@ -413,37 +415,37 @@
                                         <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mb-2 flex items-center justify-between">
                                             <span class="flex items-center gap-1.5 font-extrabold">
                                                 <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-amber-600"></i>
-                                                Calon Peserta per Profesi:
+                                                {{ t('breakdown_pendaftar_job') }}
                                             </span>
                                         </div>
                                         <div class="space-y-1 text-xs">
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-amber-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Mahasiswa S1
+                                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> {{ t('job_mhs_s1') }}
                                                 </span>
                                                 <span id="statPendaftarJobMhsS1" class="font-extrabold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-amber-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Mahasiswa S2
+                                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ t('job_mhs_s2') }}
                                                 </span>
                                                 <span id="statPendaftarJobMhsS2" class="font-extrabold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-amber-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Dosen
+                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ t('job_dosen') }}
                                                 </span>
                                                 <span id="statPendaftarJobDosen" class="font-extrabold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-amber-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Praktisi
+                                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> {{ t('job_praktisi') }}
                                                 </span>
                                                 <span id="statPendaftarJobPraktisi" class="font-extrabold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-amber-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span> Lainnya
+                                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span> {{ t('job_lainnya') }}
                                                 </span>
                                                 <span id="statPendaftarJobLainnya" class="font-extrabold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded border border-amber-200/60 font-mono text-[11px]">0</span>
                                             </div>
@@ -455,11 +457,11 @@
                                         <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mb-2 flex items-center justify-between">
                                             <span class="flex items-center gap-1.5 font-extrabold">
                                                 <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-600"></i>
-                                                Calon Peserta per Bidang:
+                                                {{ t('breakdown_pendaftar_bidang') }}
                                             </span>
                                         </div>
                                         <div id="bidangPendaftarBreakdownList" class="space-y-1 text-xs max-h-52 overflow-y-auto pr-1">
-                                            <div class="text-center py-2 text-slate-400 text-[11px]">Memuat ringkasan bidang...</div>
+                                            <div class="text-center py-2 text-slate-400 text-[11px]">{{ t('loading_breakdown_bidang') }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -474,8 +476,8 @@
                                             <i data-lucide="check-circle" class="w-4 h-4"></i>
                                         </div>
                                         <div>
-                                            <div class="leading-tight">Peserta</div>
-                                            <div class="text-[11px] font-normal text-slate-500">Sudah Scan Hadir</div>
+                                            <div class="leading-tight">{{ t('tab_peserta_title') }}</div>
+                                            <div class="text-[11px] font-normal text-slate-500">{{ t('tab_peserta_subtitle') }}</div>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1.5">
@@ -491,37 +493,37 @@
                                         <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-2 flex items-center justify-between">
                                             <span class="flex items-center gap-1.5 font-extrabold">
                                                 <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                                Peserta Hadir per Profesi:
+                                                {{ t('breakdown_peserta_job') }}
                                             </span>
                                         </div>
                                         <div class="space-y-1 text-xs">
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-emerald-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Mahasiswa S1
+                                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> {{ t('job_mhs_s1') }}
                                                 </span>
                                                 <span id="statJobMhsS1" class="font-extrabold text-emerald-900 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-emerald-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Mahasiswa S2
+                                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ t('job_mhs_s2') }}
                                                 </span>
                                                 <span id="statJobMhsS2" class="font-extrabold text-emerald-900 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-emerald-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Dosen
+                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ t('job_dosen') }}
                                                 </span>
                                                 <span id="statJobDosen" class="font-extrabold text-emerald-900 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-emerald-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Praktisi
+                                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> {{ t('job_praktisi') }}
                                                 </span>
                                                 <span id="statJobPraktisi" class="font-extrabold text-emerald-900 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-200/60 font-mono text-[11px]">0</span>
                                             </div>
                                             <div class="flex items-center justify-between px-2 py-1 rounded-lg bg-white/90 hover:bg-white transition border border-emerald-100">
                                                 <span class="text-slate-700 font-medium flex items-center gap-1.5">
-                                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span> Lainnya
+                                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span> {{ t('job_lainnya') }}
                                                 </span>
                                                 <span id="statJobLainnya" class="font-extrabold text-emerald-900 bg-emerald-100/60 px-2 py-0.5 rounded border border-emerald-200/60 font-mono text-[11px]">0</span>
                                             </div>
@@ -533,11 +535,11 @@
                                         <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-2 flex items-center justify-between">
                                             <span class="flex items-center gap-1.5 font-extrabold">
                                                 <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                                Peserta Hadir per Bidang:
+                                                {{ t('breakdown_peserta_bidang') }}
                                             </span>
                                         </div>
                                         <div id="bidangBreakdownList" class="space-y-1 text-xs max-h-52 overflow-y-auto pr-1">
-                                            <div class="text-center py-2 text-slate-400 text-[11px]">Memuat ringkasan bidang...</div>
+                                            <div class="text-center py-2 text-slate-400 text-[11px]">{{ t('loading_breakdown_bidang') }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -548,23 +550,23 @@
                     <!-- Export and Import Utility Box (Khusus Super Admin) -->
                     {% if is_superadmin %}
                     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-sm space-y-3">
-                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Ekspor & Impor Data</div>
-                        <p class="text-xs text-slate-300">Backup atau restore data seminar dalam format Excel / CSV</p>
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">{{ t('export_import_title') }}</div>
+                        <p class="text-xs text-slate-300">{{ t('export_import_desc') }}</p>
                         <div class="space-y-2 pt-1">
                             <a id="exportCurrentBtn" href="{{ request.script_root }}/api/export-csv?status=pendaftar"
                                 class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                                <span id="exportBtnLabel">Export CSV Pendaftar</span>
+                                <span id="exportBtnLabel">{{ t('export_csv_pendaftar') }}</span>
                             </a>
                             <a href="{{ request.script_root }}/api/export-csv"
                                 class="w-full py-2 px-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-2">
                                 <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                <span>Export Semua Data</span>
+                                <span>{{ t('export_csv_all') }}</span>
                             </a>
                             <button type="button" onclick="openImportModal()"
                                 class="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
                                 <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
-                                <span>📥 Impor Data dari CSV</span>
+                                <span>{{ t('import_csv_btn') }}</span>
                             </button>
                         </div>
                     </div>
@@ -579,22 +581,22 @@
                             <div class="flex items-center gap-2.5 flex-wrap">
                                 <h2 id="tableTitle" class="text-lg font-black text-slate-900 flex items-center gap-2">
                                     <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                                    Daftar Pendaftar (Belum Hadir)
+                                    {{ t('table_title_pendaftar') }}
                                 </h2>
                                 <span id="liveSyncBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-300/80 shadow-xs" title="Smart Polling aktif: tabel otomatis terupdate saat peserta absen">
                                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span>Live Sync</span>
+                                    <span>{{ t('live_sync_title') }}</span>
                                 </span>
                             </div>
                             <p id="tableSubtitle" class="text-xs text-slate-500 mt-0.5">
-                                Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.
+                                {{ t('table_desc_pendaftar') }}
                             </p>
                         </div>
 
                         <!-- Search and Filters -->
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="relative flex-1 sm:w-48">
-                                <input type="text" id="searchInput" placeholder="Cari nama, no. identitas, no HP, inst..."
+                                <input type="text" id="searchInput" placeholder="{{ t('search_placeholder') }}"
                                     class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white">
                                 <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
                                     <i data-lucide="search" class="w-3.5 h-3.5"></i>
@@ -602,37 +604,37 @@
                             </div>
 
                             <select id="filterPekerjaan" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white">
-                                <option value="Semua">Semua Profesi</option>
-                                <option value="Mahasiswa S1">Mahasiswa S1</option>
-                                <option value="Mahasiswa S2">Mahasiswa S2</option>
-                                <option value="Dosen">Dosen</option>
-                                <option value="Praktisi">Praktisi</option>
-                                <option value="Lainnya">Lainnya</option>
+                                <option value="Semua">{{ t('filter_all_jobs') }}</option>
+                                <option value="Mahasiswa S1">{{ t('job_mhs_s1') }}</option>
+                                <option value="Mahasiswa S2">{{ t('job_mhs_s2') }}</option>
+                                <option value="Dosen">{{ t('job_dosen') }}</option>
+                                <option value="Praktisi">{{ t('job_praktisi') }}</option>
+                                <option value="Lainnya">{{ t('job_lainnya') }}</option>
                             </select>
 
                             <select id="filterBidangKeilmuan" class="px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 bg-white">
-                                <option value="Semua">Semua Bidang</option>
-                                <option value="Informatika">Informatika</option>
-                                <option value="Sistem Informasi">Sistem Informasi</option>
-                                <option value="Teknik Pertambangan">Teknik Pertambangan</option>
-                                <option value="Arsitektur">Arsitektur</option>
-                                <option value="Teknik Kimia">Teknik Kimia</option>
-                                <option value="Teknik Geologi">Teknik Geologi</option>
-                                <option value="Teknik Elektro">Teknik Elektro</option>
-                                <option value="Teknik Lingkungan">Teknik Lingkungan</option>
-                                <option value="Teknik Sipil">Teknik Sipil</option>
-                                <option value="Teknik Industri">Teknik Industri</option>
-                                <option value="Lainnya">Lainnya</option>
+                                <option value="Semua">{{ t('filter_all_bidang') }}</option>
+                                <option value="Informatika">{{ t('bidang_informatika') }}</option>
+                                <option value="Sistem Informasi">{{ t('bidang_si') }}</option>
+                                <option value="Teknik Pertambangan">{{ t('bidang_tambang') }}</option>
+                                <option value="Arsitektur">{{ t('bidang_arsitektur') }}</option>
+                                <option value="Teknik Kimia">{{ t('bidang_kimia') }}</option>
+                                <option value="Teknik Geologi">{{ t('bidang_geologi') }}</option>
+                                <option value="Teknik Elektro">{{ t('bidang_elektro') }}</option>
+                                <option value="Teknik Lingkungan">{{ t('bidang_lingkungan') }}</option>
+                                <option value="Teknik Sipil">{{ t('bidang_sipil') }}</option>
+                                <option value="Teknik Industri">{{ t('bidang_industri') }}</option>
+                                <option value="Lainnya">{{ t('bidang_lainnya') }}</option>
                             </select>
 
                             {% if is_superadmin %}
                             <button onclick="openImportModal()" class="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition flex items-center gap-1.5" title="Impor Data dari CSV">
                                 <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                                <span class="hidden sm:inline">Impor CSV</span>
+                                <span class="hidden sm:inline">{% if app_language == 'en' %}Import CSV{% else %}Impor CSV{% endif %}</span>
                             </button>
                             {% endif %}
 
-                            <button onclick="loadParticipantsData()" class="p-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 transition" title="Muat Ulang Data">
+                            <button onclick="loadParticipantsData()" class="p-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-600 transition" title="{{ t('btn_refresh') }}">
                                 <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -642,16 +644,16 @@
                     <div id="bulkActionBar" class="hidden flex flex-wrap items-center justify-between gap-3 bg-emerald-50/90 border border-emerald-200 px-4 py-2.5 rounded-2xl mb-3 shadow-sm transition">
                         <div class="flex items-center gap-2 text-xs font-bold text-emerald-950">
                             <i data-lucide="check-square" class="w-4 h-4 text-emerald-600"></i>
-                            <span id="selectedCountText">0 data terpilih</span>
+                            <span id="selectedCountText">0 {{ t('bulk_selected_text') }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="clearSelectedRows()" type="button"
                                 class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl transition hover:bg-slate-50">
-                                Batal Pilih
+                                {{ t('bulk_cancel') }}
                             </button>
                             <button onclick="bulkDeleteSelected()" type="button"
                                 class="px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition flex items-center gap-1.5 shadow-sm shadow-rose-600/30">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Terpilih
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> {{ t('bulk_delete_btn') }}
                             </button>
                         </div>
                     </div>
@@ -665,23 +667,23 @@
                                         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"
                                             class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer" title="Pilih Semua">
                                     </th>
-                                    <th class="py-3 px-3 w-12 text-center">No</th>
-                                    <th class="py-3 px-4">Kode QR</th>
-                                    <th class="py-3 px-4">No. Identitas</th>
-                                    <th class="py-3 px-4">Nama Lengkap</th>
-                                    <th class="py-3 px-4">No. HP / WA</th>
-                                    <th class="py-3 px-4">Institusi</th>
-                                    <th class="py-3 px-4">Pekerjaan</th>
-                                    <th class="py-3 px-4">Bidang Keilmuan</th>
-                                    <th class="py-3 px-4" id="colWaktuHeader">Waktu Daftar</th>
-                                    <th class="py-3 px-4 text-center w-36">Aksi</th>
+                                    <th class="py-3 px-3 w-12 text-center">{{ t('col_no') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_qr') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_id_number') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_name') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_phone') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_inst') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_job') }}</th>
+                                    <th class="py-3 px-4">{{ t('col_bidang') }}</th>
+                                    <th class="py-3 px-4" id="colWaktuHeader">{{ t('col_time_reg') }}</th>
+                                    <th class="py-3 px-4 text-center w-36">{{ t('col_actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="participantTableBody" class="divide-y divide-slate-200">
                                 <tr>
                                     <td colspan="11" class="text-center py-12 text-slate-400">
                                         <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600"></i>
-                                        Memuat data...
+                                        {{ t('btn_loading') }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -690,8 +692,8 @@
 
                     <!-- Table Footer Pagination/Count -->
                     <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-                        <div>Menampilkan <span id="tableCount" class="font-bold text-slate-800">0</span> baris data</div>
-                        <div class="text-[11px] text-slate-400">Klik QR Code untuk melihat/unduh tiket</div>
+                        <div>{% if app_language == 'en' %}Showing <span id="tableCount" class="font-bold text-slate-800">0</span> rows of data{% else %}Menampilkan <span id="tableCount" class="font-bold text-slate-800">0</span> baris data{% endif %}</div>
+                        <div class="text-[11px] text-slate-400">{% if app_language == 'en' %}Click QR Code to view/download ticket{% else %}Klik QR Code untuk melihat/unduh tiket{% endif %}</div>
                     </div>
                 </div>
             </div>
@@ -709,16 +711,56 @@
                             <i data-lucide="sliders" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <h2 class="font-bold text-base sm:text-lg">Pengaturan Identitas Acara</h2>
-                            <p class="text-xs text-slate-300">Atur nama seminar/workshop dan logo resmi yang tampil pada form dan tiket</p>
+                            <h2 class="font-bold text-base sm:text-lg">{{ t('settings_identity_title') }}</h2>
+                            <p class="text-xs text-slate-300">{{ t('settings_identity_desc') }}</p>
                         </div>
                     </div>
                     <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold rounded-full hidden sm:inline-block">
-                        Branding Acara
+                        {{ t('settings_branding_badge') }}
                     </span>
                 </div>
 
                 <form id="settingsForm" class="p-6 sm:p-8 space-y-6" enctype="multipart/form-data">
+                    <!-- Language Selection Card (Full Width at Top of Form) -->
+                    <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border-2 border-emerald-200/80 shadow-xs space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="languages" class="w-5 h-5 text-emerald-600"></i>
+                                {{ t('settings_lang_label') }}
+                            </label>
+                            <span class="text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full border border-emerald-200 w-fit">
+                                {% if app_language == 'en' %}Active: English (EN){% else %}Aktif: Bahasa Indonesia (ID){% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">{{ t('settings_lang_help') }}</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <!-- Option ID -->
+                            <label class="relative flex items-center p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 {% if app_language == 'id' %}border-emerald-600 bg-emerald-50/80 shadow-sm ring-2 ring-emerald-500/20{% else %}border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50{% endif %}">
+                                <input type="radio" name="app_language" value="id" {% if app_language == 'id' %}checked{% endif %} class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 mr-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">🇮🇩</span>
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900">Bahasa Indonesia (ID)</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Formulir pendaftaran, tiket, dan admin console dalam Bahasa Indonesia</p>
+                                </div>
+                            </label>
+
+                            <!-- Option EN -->
+                            <label class="relative flex items-center p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 {% if app_language == 'en' %}border-emerald-600 bg-emerald-50/80 shadow-sm ring-2 ring-emerald-500/20{% else %}border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50{% endif %}">
+                                <input type="radio" name="app_language" value="en" {% if app_language == 'en' %}checked{% endif %} class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 mr-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">🇬🇧</span>
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900">English (EN)</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Registration forms, e-tickets, and admin console in English</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Column 1: Input Fields -->
                         <div class="space-y-5">
@@ -726,51 +768,51 @@
                             <div>
                                 <label for="inputEventName" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="type" class="w-4 h-4 text-emerald-600"></i>
-                                    Nama Acara / Seminar <span class="text-rose-500">*</span>
+                                    {{ t('settings_event_name_label') }} <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" id="inputEventName" name="event_name" required
                                     value="{{ event_settings.event_name }}"
-                                    placeholder="Contoh: Seminar Nasional AI & Data Science 2026"
+                                    placeholder="{{ t('settings_event_name_ph') }}"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm">
-                                <p class="text-xs text-slate-500 mt-1">Nama ini akan tampil di badan formulir pendaftaran, tiket, dan laporan.</p>
+                                <p class="text-xs text-slate-500 mt-1">{{ t('settings_event_name_desc') }}</p>
                             </div>
 
                             <!-- Title Tag Absen Peserta -->
                             <div>
                                 <label for="inputTitlePeserta" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="layout" class="w-4 h-4 text-emerald-600"></i>
-                                    Title Tag: Formulir Absen Peserta (Tab Browser)
+                                    {{ t('settings_title_peserta_label') }}
                                 </label>
                                 <input type="text" id="inputTitlePeserta" name="title_peserta"
                                     value="{{ event_settings.title_peserta if event_settings.title_peserta else '' }}"
-                                    placeholder="Contoh: Registrasi Peserta - {{ event_settings.event_name }}"
+                                    placeholder="{{ t('settings_title_peserta_ph') }}"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                                <p class="text-xs text-slate-500 mt-1">Judul yang muncul pada tab browser di halaman pengisian formulir & tiket peserta.</p>
+                                <p class="text-xs text-slate-500 mt-1">{{ t('settings_title_peserta_desc') }}</p>
                             </div>
 
                             <!-- Title Tag Console Peserta / Admin -->
                             <div>
                                 <label for="inputTitleConsole" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-600"></i>
-                                    Title Tag: Console Peserta / Admin (Tab Browser)
+                                    {{ t('settings_title_console_label') }}
                                 </label>
                                 <input type="text" id="inputTitleConsole" name="title_console"
                                     value="{{ event_settings.title_console if event_settings.title_console else '' }}"
-                                    placeholder="Contoh: Console Admin - {{ event_settings.event_name }}"
+                                    placeholder="{{ t('settings_title_console_ph') }}"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">
-                                <p class="text-xs text-slate-500 mt-1">Judul yang muncul pada tab browser di halaman login, scan QR, dan manajemen peserta.</p>
+                                <p class="text-xs text-slate-500 mt-1">{{ t('settings_title_console_desc') }}</p>
                             </div>
 
                             <!-- Event Custom Info (Muncul saat pendaftaran berhasil & QR muncul) -->
                             <div>
                                 <label for="inputEventInfo" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="megaphone" class="w-4 h-4 text-emerald-600"></i>
-                                    Informasi Tambahan / Pengumuman Peserta
+                                    {{ t('settings_event_info_label') }}
                                 </label>
                                 <textarea id="inputEventInfo" name="event_info" rows="3"
-                                    placeholder="Contoh: Silakan bergabung ke Grup WhatsApp: https://chat.whatsapp.com/... atau bawa identitas saat hari H."
+                                    placeholder="{{ t('settings_event_info_ph') }}"
                                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 text-sm transition shadow-sm placeholder:text-slate-400">{{ event_settings.event_info if event_settings.event_info else '' }}</textarea>
-                                <p class="text-xs text-slate-500 mt-1">Otomatis diubah menjadi tautan/link yang dapat dikklik membuka tab baru jika berisi URL.</p>
+                                <p class="text-xs text-slate-500 mt-1">{{ t('settings_event_info_desc') }}</p>
                             </div>
                         </div>
 
@@ -780,7 +822,7 @@
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="bookmark" class="w-4 h-4 text-emerald-600"></i>
-                                    FavIcon Tab Browser (.ico, .png, .svg, .webp)
+                                    {{ t('settings_favicon_label') }}
                                 </label>
                                 <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-3.5 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventFavicon').click()">
                                     <input type="file" id="inputEventFavicon" name="event_favicon" accept=".ico,.png,.svg,.webp,.jpg,.jpeg,image/*" class="hidden" onchange="handleFaviconPreview(this)">
@@ -790,15 +832,15 @@
                                             <i id="previewFaviconDefaultIcon" data-lucide="globe" class="w-5 h-5 text-emerald-600 {% if event_settings.event_favicon %}hidden{% endif %}"></i>
                                         </div>
                                         <div class="text-left">
-                                            <p class="text-xs font-semibold text-slate-800">Klik untuk unggah FavIcon baru</p>
-                                            <p class="text-[11px] text-slate-400">Tampil di sebelah judul tab browser (Rekomendasi rasio 1:1)</p>
+                                            <p class="text-xs font-semibold text-slate-800">{{ t('settings_favicon_upload_hint') }}</p>
+                                            <p class="text-[11px] text-slate-400">{{ t('settings_favicon_ratio_hint') }}</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between mt-1.5 px-1">
-                                    <span id="faviconFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_favicon %}Favicon kustom aktif{% else %}Favicon default aktif{% endif %}</span>
+                                    <span id="faviconFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_favicon %}{{ t('settings_favicon_custom_active') }}{% else %}{{ t('settings_favicon_default_active') }}{% endif %}</span>
                                     <button type="button" onclick="resetToDefaultFavicon()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
-                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Favicon
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> {{ t('settings_reset_favicon') }}
                                     </button>
                                 </div>
                             </div>
@@ -807,21 +849,21 @@
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="image" class="w-4 h-4 text-emerald-600"></i>
-                                    Logo Resmi Acara (Header & Tiket)
+                                    {{ t('settings_logo_label') }}
                                 </label>
                                 <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-3.5 text-center bg-slate-50 transition cursor-pointer" onclick="document.getElementById('inputEventLogo').click()">
                                     <input type="file" id="inputEventLogo" name="event_logo" accept="image/*" class="hidden" onchange="handleLogoPreview(this)">
                                     <div class="w-10 h-10 rounded-xl bg-white text-slate-400 flex items-center justify-center mx-auto mb-1.5 border border-slate-200 shadow-sm">
                                         <i data-lucide="upload-cloud" class="w-5 h-5 text-emerald-600"></i>
                                     </div>
-                                    <p class="text-xs font-semibold text-slate-700">Klik untuk memilih file logo baru</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Format didukung: PNG, JPG, JPEG, SVG, WEBP (Maksimal 5MB)</p>
+                                    <p class="text-xs font-semibold text-slate-700">{{ t('settings_logo_upload_hint') }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ t('settings_logo_format_hint') }}</p>
                                 </div>
 
                                 <div class="flex items-center justify-between mt-1.5 px-1">
-                                    <span id="logoFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_logo %}Logo kustom aktif{% else %}Belum ada file baru dipilih{% endif %}</span>
+                                    <span id="logoFileName" class="text-xs text-slate-500 italic">{% if event_settings.event_logo %}{{ t('settings_logo_custom_active') }}{% else %}{{ t('settings_logo_none_active') }}{% endif %}</span>
                                     <button type="button" onclick="resetToDefaultLogo()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1">
-                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Logo
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> {{ t('settings_reset_logo') }}
                                     </button>
                                 </div>
                             </div>
@@ -830,7 +872,7 @@
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i data-lucide="eye" class="w-4 h-4 text-emerald-600"></i>
-                                    Pratinjau Tampilan Tab & Branding (Live Preview)
+                                    {{ t('settings_preview_label') }}
                                 </label>
                                 <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-5 text-white border border-slate-700 shadow-lg space-y-3">
                                     <!-- Simulated Browser Tab -->
@@ -864,7 +906,7 @@
                         <button type="submit" id="saveSettingsBtn"
                             class="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 transition flex items-center gap-2">
                             <i data-lucide="save" class="w-4 h-4"></i>
-                            <span id="saveSettingsBtnText">Simpan Perubahan Acara</span>
+                            <span id="saveSettingsBtnText">{{ t('settings_btn_save') }}</span>
                         </button>
                     </div>
                 </form>
@@ -877,28 +919,28 @@
                         <i data-lucide="key-round" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-base text-slate-900">Ubah Password Akun Saya (@{{ admin_username }})</h2>
-                        <p class="text-xs text-slate-500">Perbarui kata sandi untuk akun yang sedang aktif</p>
+                        <h2 class="font-bold text-base text-slate-900">{{ t('profile_card_title') }} (@{{ admin_username }})</h2>
+                        <p class="text-xs text-slate-500">{{ t('profile_card_desc') }}</p>
                     </div>
                 </div>
 
                 <form id="changePassForm" class="p-6 sm:p-8 space-y-4 max-w-xl">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Tampilan</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('profile_lbl_display_name') }}</label>
                         <input type="text" id="myNama" value="{{ admin_name }}" placeholder="Nama Anda" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Saat Ini <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('profile_lbl_current_pass') }} <span class="text-rose-500">*</span></label>
                         <input type="password" id="currPassword" required placeholder="••••••••" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Baru</label>
-                        <input type="password" id="newPassword" placeholder="•••••••• (kosongkan jika tidak diubah)" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('profile_lbl_new_pass') }}</label>
+                        <input type="password" id="newPassword" placeholder="{{ t('profile_new_pass_ph') }}" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500">
                     </div>
                     <div class="pt-2">
                         <button type="submit" class="py-2.5 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow flex items-center gap-1.5">
                             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-                            <span>Simpan Perubahan Akun</span>
+                            <span>{{ t('profile_btn_save') }}</span>
                         </button>
                     </div>
                 </form>
@@ -919,18 +961,18 @@
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h2 class="font-extrabold text-lg text-white">Manajemen User Admin</h2>
+                                <h2 class="font-extrabold text-lg text-white">{{ t('admin_users_title') }}</h2>
                                 <span class="px-2.5 py-0.5 rounded-full bg-purple-400/20 text-purple-200 border border-purple-400/30 text-[10px] font-bold uppercase tracking-wider">
-                                    Super Admin Control
+                                    {{ t('admin_super_control') }}
                                 </span>
                             </div>
-                            <p class="text-xs text-purple-200/80">Kelola akun panitia/petugas absensi dan atur ulang password dari semua user admin</p>
+                            <p class="text-xs text-purple-200/80">{{ t('admin_super_desc') }}</p>
                         </div>
                     </div>
 
                     <button onclick="openAddAdminModal()" type="button" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
-                        <span>+ Tambah Admin Baru</span>
+                        <span>{{ t('admin_btn_add_new') }}</span>
                     </button>
                 </div>
 
@@ -939,20 +981,20 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
                             <tr>
-                                <th class="py-3 px-4 w-12 text-center">No</th>
-                                <th class="py-3 px-4">Nama Lengkap</th>
-                                <th class="py-3 px-4">Username</th>
-                                <th class="py-3 px-4">Role / Hak Akses</th>
-                                <th class="py-3 px-4">Dibuat Pada</th>
-                                <th class="py-3 px-4">Login Terakhir</th>
-                                <th class="py-3 px-4 text-center w-48">Aksi Manajemen</th>
+                                <th class="py-3 px-4 w-12 text-center">{{ t('col_no') }}</th>
+                                <th class="py-3 px-4">{{ t('admin_col_name') }}</th>
+                                <th class="py-3 px-4">{{ t('admin_col_username') }}</th>
+                                <th class="py-3 px-4">{{ t('admin_col_role') }}</th>
+                                <th class="py-3 px-4">{{ t('admin_col_created_at') }}</th>
+                                <th class="py-3 px-4">{{ t('admin_col_last_login') }}</th>
+                                <th class="py-3 px-4 text-center w-48">{{ t('admin_col_actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="adminUsersTableBody" class="divide-y divide-slate-200">
                             <tr>
                                 <td colspan="7" class="text-center py-10 text-slate-400">
                                     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600"></i>
-                                    Memuat daftar admin...
+                                    {{ t('admin_loading') }}
                                 </td>
                             </tr>
                         </tbody>
@@ -963,9 +1005,9 @@
                 <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
                     <div class="flex items-center gap-1.5">
                         <i data-lucide="info" class="w-4 h-4 text-purple-600 shrink-0"></i>
-                        <span>Super Admin memiliki hak akses penuh untuk mengatur/mereset password admin manapun.</span>
+                        <span>{{ t('admin_super_footer_hint') }}</span>
                     </div>
-                    <div class="font-semibold text-slate-700">Total Akun: <span id="adminUsersCount">0</span> User</div>
+                    <div class="font-semibold text-slate-700">{{ t('admin_total_accounts') }} <span id="adminUsersCount">0</span> {{ t('admin_user_count_label') }}</div>
                 </div>
             </div>
         </div>
@@ -975,11 +1017,11 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>© 2026 SeminarPass. Sistem Registrasi & Absensi QR Code Seminar Nasional.</p>
+            <p>{{ t('footer_copyright') }}</p>
             <p class="flex items-center gap-1">
-                <span>Status Console:</span>
+                <span>{{ t('footer_console_status') }}</span>
                 <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Terhubung
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ t('footer_connected') }}
                 </span>
             </p>
         </div>
@@ -993,7 +1035,7 @@
                     <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
                         <i data-lucide="key" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="font-bold text-sm text-slate-900">Atur Password Admin</h3>
+                    <h3 class="font-bold text-sm text-slate-900">{{ t('reset_modal_title') }}</h3>
                 </div>
                 <button onclick="closeResetPassModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -1001,7 +1043,7 @@
             </div>
 
             <div class="text-left space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
-                <div class="text-slate-500">Akun Target:</div>
+                <div class="text-slate-500">{{ t('reset_modal_target') }}</div>
                 <div class="font-bold text-slate-900" id="resetTargetNama">-</div>
                 <div class="font-mono text-purple-700 font-bold" id="resetTargetUsername">@-</div>
             </div>
@@ -1009,17 +1051,17 @@
             <form id="resetPassForm" class="space-y-4 text-left">
                 <input type="hidden" id="resetTargetId">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Baru</label>
-                    <input type="password" id="resetNewPass" required placeholder="Masukkan password baru"
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('reset_modal_new_pass') }}</label>
+                    <input type="password" id="resetNewPass" required placeholder="{{ t('reset_modal_new_pass_ph') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
 
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeResetPassModal()" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                        Batal
+                        {{ t('btn_cancel') }}
                     </button>
                     <button type="submit" class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow">
-                        Simpan Password
+                        {{ t('reset_modal_btn_save') }}
                     </button>
                 </div>
             </form>
@@ -1030,7 +1072,7 @@
     <div id="adminUserModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-base text-slate-900" id="adminUserModalTitle">Tambah Admin Baru</h3>
+                <h3 class="font-bold text-base text-slate-900" id="adminUserModalTitle">{{ t('admin_modal_add_title') }}</h3>
                 <button onclick="closeAdminUserModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -1039,34 +1081,34 @@
             <form id="adminUserForm" class="space-y-4 text-left">
                 <input type="hidden" id="modalAdminId">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nama Lengkap</label>
-                    <input type="text" id="modalAdminNama" required placeholder="Contoh: Petugas Meja 1"
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('admin_modal_fullname') }}</label>
+                    <input type="text" id="modalAdminNama" required placeholder="{{ t('admin_modal_fullname_ph') }}"
                         class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Username</label>
-                    <input type="text" id="modalAdminUsername" required placeholder="petugas5"
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('admin_modal_username') }}</label>
+                    <input type="text" id="modalAdminUsername" required placeholder="{{ t('admin_modal_username_ph') }}"
                         class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div id="modalPassField">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Password Awal</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('admin_modal_initial_pass') }}</label>
                     <input type="password" id="modalAdminPassword" placeholder="••••••••"
                         class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Role / Hak Akses</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">{{ t('admin_modal_role') }}</label>
                     <select id="modalAdminRole" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 bg-white">
-                        <option value="admin">Petugas Admin (Scan & Kelola Data)</option>
-                        <option value="superadmin">Super Admin (Akses Penuh & Manajemen Akun)</option>
+                        <option value="admin">{{ t('admin_role_staff_opt') }}</option>
+                        <option value="superadmin">{{ t('admin_role_super_opt') }}</option>
                     </select>
                 </div>
 
                 <div class="flex gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeAdminUserModal()" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                        Batal
+                        {{ t('btn_cancel') }}
                     </button>
                     <button type="submit" id="saveAdminUserBtn" class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow">
-                        Simpan Admin
+                        {{ t('admin_modal_btn_save') }}
                     </button>
                 </div>
             </form>
@@ -1077,7 +1119,7 @@
     <div id="qrModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-sm text-slate-800" id="qrModalTitle">QR Code Tiket</h3>
+                <h3 class="font-bold text-sm text-slate-800" id="qrModalTitle">{{ t('qr_modal_title') }}</h3>
                 <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -1092,10 +1134,10 @@
 
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <a id="qrModalDownload" href="#" download="" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> {{ t('qr_modal_btn_download') }}
                 </a>
                 <a id="qrModalTicketLink" href="#" target="_blank" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow">
-                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> E-Ticket
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> {{ t('qr_modal_btn_ticket') }}
                 </a>
             </div>
         </div>
@@ -1113,20 +1155,20 @@
                 <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
                     <i data-lucide="file-up" class="w-6 h-6 stroke-[2.5]"></i>
                 </div>
-                <h3 class="text-xl font-extrabold">Impor Data Peserta dari CSV</h3>
-                <p class="text-xs text-blue-100 mt-1">Restore atau tambahkan data pendaftar & peserta sekaligus dari file CSV backup</p>
+                <h3 class="text-xl font-extrabold">{{ t('import_modal_title') }}</h3>
+                <p class="text-xs text-blue-100 mt-1">{{ t('import_modal_desc') }}</p>
             </div>
 
             <form id="importCsvForm" class="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
                 <!-- File Picker Area -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Pilih File Backup CSV (.csv)
+                        {{ t('import_lbl_pick_file') }}
                     </label>
                     <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-5 text-center bg-slate-50 hover:bg-blue-50/50 transition cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
                         <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
-                        <span id="csvFileName" class="text-xs font-semibold text-slate-700 block">Klik untuk memilih file CSV</span>
-                        <span class="text-[11px] text-slate-400 mt-0.5 block">Format UTF-8, hasil export sistem atau template standar</span>
+                        <span id="csvFileName" class="text-xs font-semibold text-slate-700 block">{{ t('import_pick_file_hint') }}</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5 block">{{ t('import_format_hint') }}</span>
                         <input type="file" id="csvFileInput" name="file" accept=".csv" class="hidden" required onchange="handleCsvFileSelect(this)">
                     </div>
                 </div>
@@ -1136,8 +1178,8 @@
                     <input type="checkbox" id="overwriteExisting" name="overwrite" value="true" checked
                         class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
                     <label for="overwriteExisting" class="text-xs text-slate-700 cursor-pointer">
-                        <strong class="font-semibold text-slate-900 block">Perbarui Data Jika Sudah Ada</strong>
-                        Jika No. Identitas atau Kode QR sudah ada di database, perbarui datanya. (Hilangkan centang jika ingin melewati data duplikat).
+                        <strong class="font-semibold text-slate-900 block">{{ t('import_chk_overwrite_title') }}</strong>
+                        {{ t('import_chk_overwrite_desc') }}
                     </label>
                 </div>
 
@@ -1145,13 +1187,13 @@
                 <div class="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 space-y-1">
                     <div class="font-bold flex items-center gap-1.5 text-blue-950">
                         <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
-                        Format Kolom yang Didukung:
+                        {{ t('import_format_col_title') }}
                     </div>
                     <p class="text-[11px] text-blue-800 leading-relaxed font-mono">
-                        No, Kode QR, No. Identitas, Nama Lengkap, No. HP / WA, Institusi, Pekerjaan, Status, Waktu Pendaftaran, Waktu Hadir
+                        {{ t('import_format_cols') }}
                     </p>
                     <p class="text-[11px] text-blue-700">
-                        *File hasil fitur "Export Semua Data" dapat langsung diimpor ke sini tanpa perlu diubah.
+                        {{ t('import_format_notice') }}
                     </p>
                 </div>
 
@@ -1159,12 +1201,12 @@
                 <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
                     <button type="button" onclick="closeImportModal()"
                         class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                        Batal
+                        {{ t('btn_cancel') }}
                     </button>
                     <button type="submit" id="btnSubmitImport"
                         class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-600/30">
                         <i data-lucide="upload" class="w-4 h-4"></i>
-                        <span id="btnSubmitImportText">Mulai Impor Data</span>
+                        <span id="btnSubmitImportText">{{ t('import_btn_start') }}</span>
                     </button>
                 </div>
             </form>
@@ -1183,8 +1225,8 @@
                 <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-2 text-white">
                     <i data-lucide="user-cog" class="w-6 h-6 stroke-[2.5]"></i>
                 </div>
-                <h3 class="text-xl font-extrabold">Edit Data Peserta</h3>
-                <p class="text-xs text-blue-100 mt-1">Perbarui informasi identitas, kontak, atau status kehadiran peserta</p>
+                <h3 class="text-xl font-extrabold">{{ t('edit_part_title') }}</h3>
+                <p class="text-xs text-blue-100 mt-1">{{ t('edit_part_desc') }}</p>
             </div>
 
             <form id="editParticipantForm" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
@@ -1192,7 +1234,7 @@
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Nama Lengkap <span class="text-rose-500">*</span>
+                        {{ t('edit_part_lbl_name') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="editNama" required
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -1201,14 +1243,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            No. Identitas (NIM/NIP/NIDN) <span class="text-rose-500">*</span>
+                            {{ t('edit_part_lbl_id') }} <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" id="editNim" required
                             class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-mono">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            No. HP / WhatsApp
+                            {{ t('edit_part_lbl_phone') }}
                         </label>
                         <input type="text" id="editHp"
                             class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-mono" placeholder="0812...">
@@ -1217,7 +1259,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Institusi / Instansi / Kampus <span class="text-rose-500">*</span>
+                        {{ t('edit_part_lbl_inst') }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" id="editInstitusi" required
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -1226,58 +1268,58 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Pekerjaan / Profesi <span class="text-rose-500">*</span>
+                            {{ t('edit_part_lbl_job') }} <span class="text-rose-500">*</span>
                         </label>
                         <select id="editPekerjaan" required
                             class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option value="Mahasiswa S1">Mahasiswa S1</option>
-                            <option value="Mahasiswa S2">Mahasiswa S2</option>
-                            <option value="Dosen">Dosen</option>
-                            <option value="Praktisi">Praktisi</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <option value="Mahasiswa S1">{{ t('job_mhs_s1') }}</option>
+                            <option value="Mahasiswa S2">{{ t('job_mhs_s2') }}</option>
+                            <option value="Dosen">{{ t('job_dosen') }}</option>
+                            <option value="Praktisi">{{ t('job_praktisi') }}</option>
+                            <option value="Lainnya">{{ t('job_lainnya') }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Bidang Keilmuan <span class="text-rose-500">*</span>
+                            {{ t('edit_part_lbl_bidang') }} <span class="text-rose-500">*</span>
                         </label>
                         <select id="editBidangKeilmuan" required
                             class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option value="Informatika">Informatika</option>
-                            <option value="Sistem Informasi">Sistem Informasi</option>
-                            <option value="Teknik Pertambangan">Teknik Pertambangan</option>
-                            <option value="Arsitektur">Arsitektur</option>
-                            <option value="Teknik Kimia">Teknik Kimia</option>
-                            <option value="Teknik Geologi">Teknik Geologi</option>
-                            <option value="Teknik Elektro">Teknik Elektro</option>
-                            <option value="Teknik Lingkungan">Teknik Lingkungan</option>
-                            <option value="Teknik Sipil">Teknik Sipil</option>
-                            <option value="Teknik Industri">Teknik Industri</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <option value="Informatika">{{ t('bidang_informatika') }}</option>
+                            <option value="Sistem Informasi">{{ t('bidang_si') }}</option>
+                            <option value="Teknik Pertambangan">{{ t('bidang_tambang') }}</option>
+                            <option value="Arsitektur">{{ t('bidang_arsitektur') }}</option>
+                            <option value="Teknik Kimia">{{ t('bidang_kimia') }}</option>
+                            <option value="Teknik Geologi">{{ t('bidang_geologi') }}</option>
+                            <option value="Teknik Elektro">{{ t('bidang_elektro') }}</option>
+                            <option value="Teknik Lingkungan">{{ t('bidang_lingkungan') }}</option>
+                            <option value="Teknik Sipil">{{ t('bidang_sipil') }}</option>
+                            <option value="Teknik Industri">{{ t('bidang_industri') }}</option>
+                            <option value="Lainnya">{{ t('bidang_lainnya') }}</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Status Kehadiran <span class="text-rose-500">*</span>
+                        {{ t('edit_part_lbl_status') }} <span class="text-rose-500">*</span>
                     </label>
                     <select id="editStatus" required
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-semibold">
-                        <option value="pendaftar">⏳ Pendaftar (Belum Hadir)</option>
-                        <option value="peserta">✅ Peserta (Sudah Hadir)</option>
+                        <option value="pendaftar">{{ t('edit_part_status_pendaftar') }}</option>
+                        <option value="peserta">{{ t('edit_part_status_peserta') }}</option>
                     </select>
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeEditParticipantModal()"
                         class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                        Batal
+                        {{ t('btn_cancel') }}
                     </button>
                     <button type="submit" id="btnSaveEditParticipant"
                         class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-md shadow-blue-600/30">
                         <i data-lucide="save" class="w-4 h-4"></i>
-                        <span id="btnSaveEditParticipantText">Simpan Perubahan</span>
+                        <span id="btnSaveEditParticipantText">{{ t('edit_part_btn_save') }}</span>
                     </button>
                 </div>
             </form>
@@ -1290,7 +1332,7 @@
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                     <i data-lucide="wifi" class="w-5 h-5 text-emerald-600"></i>
-                    <h3 class="font-bold text-sm text-slate-800">Akses Jaringan Wi-Fi / HP</h3>
+                    <h3 class="font-bold text-sm text-slate-800">{{ t('lan_modal_title') }}</h3>
                 </div>
                 <button onclick="closeLanModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -1298,24 +1340,29 @@
             </div>
 
             <p class="text-xs text-slate-600">
-                Scan QR Code ini menggunakan kamera HP untuk membuka form pendaftaran seminar di jaringan Wi-Fi lokal:
+                {{ t('lan_modal_desc') }}
             </p>
 
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
                 <img id="lanQrImage" src="{{ request.script_root }}/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
                 <div class="mt-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 break-all" id="lanUrlText">
-                    Memuat URL...
+                    {{ t('btn_loading') }}
                 </div>
             </div>
 
             <p class="text-[11px] text-slate-400">
-                Pastikan HP / laptop peserta terhubung ke jaringan Wi-Fi yang sama.
+                {{ t('lan_modal_hint') }}
             </p>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
+
+        // Translation Helper for JS
+        function t(key, fallback = '') {
+            return (window.I18N && window.I18N[key]) ? window.I18N[key] : (fallback || key);
+        }
 
         // XSS Sanitizer Utility
         function escapeHtml(str) {
@@ -1454,13 +1501,13 @@
                 }
                 if (badgeSubPeserta) badgeSubPeserta.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-slate-200 text-slate-800';
 
-                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-amber-500"></span> Daftar Pendaftar (Belum Hadir)`;
-                tableSubtitle.textContent = 'Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.';
-                colWaktuHeader.textContent = 'Waktu Daftar';
+                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-amber-500"></span> ${t('table_title_pendaftar', 'Daftar Pendaftar (Belum Hadir)')}`;
+                tableSubtitle.textContent = t('table_desc_pendaftar', 'Menampilkan data orang yang sudah mendaftar namun belum melakukan absensi pemindaian QR Code.');
+                colWaktuHeader.textContent = t('col_time_reg', 'Waktu Daftar');
                 
                 if (exportCurrentBtn && exportBtnLabel) {
                     exportCurrentBtn.href = `${window.BASE_URL}/api/export-csv?status=pendaftar`;
-                    exportBtnLabel.textContent = 'Export CSV Pendaftar';
+                    exportBtnLabel.textContent = t('export_csv_pendaftar', 'Export CSV Pendaftar');
                 }
             } else {
                 if (tabPesertaCard) tabPesertaCard.className = 'rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden transition-all duration-200';
@@ -1481,13 +1528,13 @@
                 }
                 if (badgeSubPendaftar) badgeSubPendaftar.className = 'px-2 py-0.5 rounded-full text-xs font-extrabold bg-slate-200 text-slate-800';
 
-                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-emerald-500"></span> Daftar Peserta (Sudah Hadir)`;
-                tableSubtitle.textContent = 'Menampilkan data orang yang telah hadir melalui pemindaian QR Code.';
-                colWaktuHeader.textContent = 'Waktu Hadir';
+                tableTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-emerald-500"></span> ${t('table_title_peserta', 'Daftar Peserta (Sudah Hadir)')}`;
+                tableSubtitle.textContent = t('table_desc_peserta', 'Menampilkan data orang yang telah hadir melalui pemindaian QR Code.');
+                colWaktuHeader.textContent = t('col_time_att', 'Waktu Hadir');
                 
                 if (exportCurrentBtn && exportBtnLabel) {
                     exportCurrentBtn.href = `${window.BASE_URL}/api/export-csv?status=peserta`;
-                    exportBtnLabel.textContent = 'Export CSV Peserta';
+                    exportBtnLabel.textContent = t('export_csv_peserta', 'Export CSV Peserta');
                 }
             }
 
@@ -1505,13 +1552,13 @@
                     devices.forEach((cam, index) => {
                         const opt = document.createElement('option');
                         opt.value = cam.id;
-                        opt.text = cam.label || `Kamera ${index + 1}`;
+                        opt.text = cam.label || `${t('scan_cam_label', 'Kamera')} ${index + 1}`;
                         select.appendChild(opt);
                     });
                 } else {
                     const opt = document.createElement('option');
                     opt.value = "";
-                    opt.text = "Kamera tidak ditemukan";
+                    opt.text = t('scan_cam_not_found', 'Kamera tidak ditemukan');
                     select.appendChild(opt);
                 }
             } catch (e) {
@@ -1554,15 +1601,16 @@
                 );
                 isCameraRunning = true;
                 placeholder.classList.add('hidden');
-                cameraBtnLabel.textContent = 'Matikan Kamera';
+                cameraBtnLabel.textContent = t('scan_stop_cam', 'Matikan Kamera');
                 toggleBtn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5';
             } catch (err) {
                 console.error('Unable to start scanning', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Kamera Gagal Dibuka',
-                    text: 'Pastikan Anda memberikan izin akses kamera pada peramban ini.',
-                    confirmButtonColor: '#16a34a'
+                    title: t('swal_cam_failed_title', 'Kamera Gagal Dibuka'),
+                    text: t('swal_cam_failed_text', 'Pastikan Anda memberikan izin akses kamera pada peramban ini.'),
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
             }
         }
@@ -1572,7 +1620,7 @@
                 await html5QrScanner.stop();
                 isCameraRunning = false;
                 document.getElementById('cameraPlaceholder').classList.remove('hidden');
-                document.getElementById('cameraBtnLabel').textContent = 'Nyalakan Kamera';
+                document.getElementById('cameraBtnLabel').textContent = t('scan_start_cam', 'Nyalakan Kamera');
                 document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5';
             }
         }
@@ -1614,9 +1662,10 @@
             if (!val) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Kode Kosong',
-                    text: 'Masukkan 10 karakter kode QR!',
-                    confirmButtonColor: '#16a34a'
+                    title: t('swal_code_empty_title', 'Kode Kosong'),
+                    text: t('swal_code_empty_text', 'Masukkan 10 karakter kode QR!'),
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
                 return;
             }
@@ -1631,8 +1680,8 @@
 
             try {
                 Swal.fire({
-                    title: 'Memindai Gambar...',
-                    text: 'Membaca kode QR dari gambar',
+                    title: t('swal_scanning_img_title', 'Memindai Gambar...'),
+                    text: t('swal_scanning_img_text', 'Membaca kode QR dari gambar'),
                     allowOutsideClick: false,
                     didOpen: () => { Swal.showLoading(); }
                 });
@@ -1644,9 +1693,10 @@
                 Swal.close();
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal Membaca QR',
-                    text: 'QR Code tidak terdeteksi pada gambar. Pastikan foto jelas dan fokus.',
-                    confirmButtonColor: '#16a34a'
+                    title: t('swal_scan_file_failed_title', 'Gagal Membaca QR'),
+                    text: t('swal_scan_file_failed_text', 'QR Code tidak terdeteksi pada gambar. Pastikan foto jelas dan fokus.'),
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
             } finally {
                 input.value = '';
@@ -1671,15 +1721,15 @@
                 confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
 
                 badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800';
-                badge.textContent = 'Berhasil Hadir';
+                badge.textContent = t('scan_status_success', 'Hadir');
 
                 resultBanner.className = 'p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center';
                 resultIcon.className = 'w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
                 resultIcon.innerHTML = `<i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>`;
                 resultTitle.className = 'text-base font-extrabold text-emerald-900';
-                resultTitle.textContent = 'BERHASIL ABSENSI!';
+                resultTitle.textContent = t('scan_banner_success_title', 'BERHASIL ABSENSI!');
                 resultSubtitle.className = 'text-xs text-emerald-700 mt-0.5';
-                resultSubtitle.textContent = 'Status diubah menjadi Peserta (Hadir)';
+                resultSubtitle.textContent = t('scan_banner_success_desc', 'Status diubah menjadi Peserta (Hadir)');
 
                 const d = res.data;
                 document.getElementById('resQrCode').textContent = d.qr_code;
@@ -1694,15 +1744,15 @@
                 playBeep('warning');
 
                 badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800';
-                badge.textContent = 'Sudah Hadir';
+                badge.textContent = t('scan_status_already', 'Sudah Hadir');
 
                 resultBanner.className = 'p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center';
                 resultIcon.className = 'w-12 h-12 rounded-full bg-amber-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
                 resultIcon.innerHTML = `<i data-lucide="info" class="w-6 h-6 stroke-[3]"></i>`;
                 resultTitle.className = 'text-base font-extrabold text-amber-900';
-                resultTitle.textContent = 'SUDAH HADIR SEBELUMNYA';
+                resultTitle.textContent = t('scan_banner_already_title', 'SUDAH HADIR SEBELUMNYA');
                 resultSubtitle.className = 'text-xs text-amber-700 mt-0.5';
-                resultSubtitle.textContent = 'Peserta ini telah melakukan absensi';
+                resultSubtitle.textContent = t('scan_banner_already_desc', 'Peserta ini telah melakukan absensi');
 
                 const d = res.data;
                 document.getElementById('resQrCode').textContent = d.qr_code;
@@ -1717,15 +1767,15 @@
                 playBeep('error');
 
                 badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800';
-                badge.textContent = 'Tidak Ditemukan';
+                badge.textContent = t('scan_status_not_found', 'Tidak Ditemukan');
 
                 resultBanner.className = 'p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center';
                 resultIcon.className = 'w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center mx-auto mb-2 shadow-md';
                 resultIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-6 h-6 stroke-[3]"></i>`;
                 resultTitle.className = 'text-base font-extrabold text-rose-900';
-                resultTitle.textContent = 'QR CODE TIDAK DITEMUKAN';
+                resultTitle.textContent = t('scan_banner_not_found_title', 'QR CODE TIDAK DITEMUKAN');
                 resultSubtitle.className = 'text-xs text-rose-700 mt-0.5';
-                resultSubtitle.textContent = res.message || 'Kode QR tidak terdaftar dalam sistem.';
+                resultSubtitle.textContent = res.message || t('scan_banner_not_found_desc', 'Kode QR tidak terdaftar dalam sistem.');
 
                 document.getElementById('resQrCode').textContent = scannedCode;
                 document.getElementById('resNama').textContent = '-';
@@ -1743,7 +1793,7 @@
             document.getElementById('scanEmptyState').classList.remove('hidden');
             document.getElementById('scanResultCard').classList.add('hidden');
             document.getElementById('scanStatusBadge').className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600';
-            document.getElementById('scanStatusBadge').textContent = 'Menunggu Scan';
+            document.getElementById('scanStatusBadge').textContent = t('scan_status_waiting', 'Menunggu Scan');
             if (document.getElementById('resBidang')) document.getElementById('resBidang').textContent = '-';
             lastScanCode = '';
         }
@@ -1848,7 +1898,7 @@
                     <tr>
                         <td colspan="11" class="text-center py-10 text-slate-400">
                             <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600"></i>
-                            Memuat data...
+                            ${t('btn_loading', 'Memuat data...')}
                         </td>
                     </tr>
                 `;
@@ -1871,7 +1921,7 @@
                         const rowAnimClass = isNewOrUpdated ? 'bg-emerald-100/70' : 'hover:bg-slate-50/80';
 
                         const timeDisplay = currentInfoSubTab === 'peserta' ? (p.attended_at || '-') : p.created_at;
-                        const toggleActionTitle = currentInfoSubTab === 'pendaftar' ? 'Tandai Sudah Hadir' : 'Kembalikan ke Pendaftar';
+                        const toggleActionTitle = currentInfoSubTab === 'pendaftar' ? t('action_mark_attended', 'Tandai Sudah Hadir') : t('action_undo_attended', 'Kembalikan ke Pendaftar');
                         const toggleActionIcon = currentInfoSubTab === 'pendaftar' ? 'check' : 'undo-2';
                         const toggleActionClass = currentInfoSubTab === 'pendaftar' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700';
 
@@ -1906,7 +1956,7 @@
                                 <td class="py-3 px-4 font-bold text-slate-900">${safeNama}</td>
                                 <td class="py-3 px-4">
                                     ${p.no_hp ? `
-                                        <a href="https://wa.me/${waNumber}" target="_blank" title="Hubungi via WhatsApp (${safeHp})"
+                                        <a href="https://wa.me/${waNumber}" target="_blank" title="${t('action_contact_wa', 'Hubungi via WhatsApp')} (${safeHp})"
                                              class="font-mono text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
                                             <i data-lucide="phone" class="w-3 h-3 text-emerald-600"></i>
                                             <span>${safeHp}</span>
@@ -1933,11 +1983,11 @@
                                             <i data-lucide="${toggleActionIcon}" class="w-3.5 h-3.5"></i>
                                         </button>
                                         ` : ''}
-                                        <button onclick="openEditParticipantModal(${p.id})" title="Edit Data Peserta"
+                                        <button onclick="openEditParticipantModal(${p.id})" title="${t('action_edit_part', 'Edit Data Peserta')}"
                                              class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition">
                                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                         </button>
-                                        <button onclick="deleteParticipant(${p.id}, '${encodeURIComponent(p.nama_lengkap)}')" title="Hapus Data"
+                                        <button onclick="deleteParticipant(${p.id}, '${encodeURIComponent(p.nama_lengkap)}')" title="${t('action_delete_data', 'Hapus Data')}"
                                              class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition">
                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                         </button>
@@ -1954,8 +2004,8 @@
                         <tr>
                             <td colspan="11" class="text-center py-12 text-slate-400">
                                 <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                                <p class="font-medium text-slate-600">Tidak ada data ${currentInfoSubTab}</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">Belum ada data yang cocok dengan kriteria pencarian.</p>
+                                <p class="font-medium text-slate-600">${currentInfoSubTab === 'pendaftar' ? t('empty_data_pendaftar', 'Tidak ada data pendaftar') : t('empty_data_peserta', 'Tidak ada data peserta')}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">${t('empty_data_filter', 'Belum ada data yang cocok dengan kriteria pencarian.')}</p>
                             </td>
                         </tr>
                     `;
@@ -1975,17 +2025,17 @@
 
         async function toggleParticipantStatus(id, encodedName, currentStatus) {
             const name = decodeURIComponent(encodedName);
-            const nextStatus = currentStatus === 'pendaftar' ? 'Peserta (Hadir)' : 'Pendaftar (Belum Hadir)';
+            const nextStatus = currentStatus === 'pendaftar' ? t('edit_part_status_peserta', 'Peserta (Hadir)') : t('edit_part_status_pendaftar', 'Pendaftar (Belum Hadir)');
 
             const confirm = await Swal.fire({
-                title: 'Ubah Status Kehadiran?',
-                text: `Ubah status ${name} menjadi ${nextStatus}?`,
+                title: t('swal_toggle_title', 'Ubah Status Kehadiran?'),
+                text: t('swal_toggle_text', 'Ubah status {name} menjadi {status}?').replace('{name}', name).replace('{status}', nextStatus),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#16a34a',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Ubah',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_toggle_yes', 'Ya, Ubah'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -1999,9 +2049,10 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Akses Ditolak',
-                        text: json.message || 'Gagal mengubah status kehadiran.',
-                        confirmButtonColor: '#2563eb'
+                        title: t('swal_access_denied', 'Akses Ditolak'),
+                        text: json.message || t('swal_toggle_failed', 'Gagal mengubah status kehadiran.'),
+                        confirmButtonColor: '#2563eb',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                 }
             } catch (e) {
@@ -2012,14 +2063,14 @@
         async function deleteParticipant(id, encodedName) {
             const name = decodeURIComponent(encodedName);
             const confirm = await Swal.fire({
-                title: 'Hapus Data?',
-                text: `Apakah Anda yakin ingin menghapus data ${name}?`,
+                title: t('swal_delete_title', 'Hapus Data?'),
+                text: t('swal_delete_text', 'Apakah Anda yakin ingin menghapus data {name}?').replace('{name}', name),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_btn_yes_delete', 'Ya, Hapus'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -2055,7 +2106,7 @@
 
             if (count > 0) {
                 if (bar) bar.classList.remove('hidden');
-                if (text) text.textContent = `${count} data terpilih`;
+                if (text) text.textContent = `${count} ${t('bulk_selected_text', 'data terpilih')}`;
             } else {
                 if (bar) bar.classList.add('hidden');
             }
@@ -2081,22 +2132,23 @@
             if (ids.length === 0) {
                 Swal.fire({
                     icon: 'info',
-                    title: 'Pilih Data Terlebih Dahulu',
-                    text: 'Centang kotak pada baris data yang ingin Anda hapus.',
-                    confirmButtonColor: '#2563eb'
+                    title: t('swal_bulk_pick_title', 'Pilih Data Terlebih Dahulu'),
+                    text: t('swal_bulk_pick_desc', 'Centang kotak pada baris data yang ingin Anda hapus.'),
+                    confirmButtonColor: '#2563eb',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
                 return;
             }
 
             const confirm = await Swal.fire({
-                title: `Hapus ${ids.length} Data Terpilih?`,
-                text: `Data yang dihapus (${ids.length} orang) tidak dapat dipulihkan kembali. Lanjutkan?`,
+                title: t('swal_bulk_del_title', 'Hapus {count} Data Terpilih?').replace('{count}', ids.length),
+                text: t('swal_bulk_del_desc', 'Data yang dihapus ({count} orang) tidak dapat dipulihkan kembali. Lanjutkan?').replace('{count}', ids.length),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: `Ya, Hapus ${ids.length} Data`,
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_bulk_del_yes', 'Ya, Hapus {count} Data').replace('{count}', ids.length),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -2112,8 +2164,8 @@
                 if (json.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil Dihapus',
-                        text: json.message || `${ids.length} data berhasil dihapus.`,
+                        title: t('swal_bulk_del_success', 'Berhasil Dihapus'),
+                        text: json.message || t('swal_bulk_del_success_desc', '{count} data berhasil dihapus.').replace('{count}', ids.length),
                         timer: 2000,
                         showConfirmButton: false
                     });
@@ -2122,18 +2174,20 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Gagal Menghapus',
-                        text: json.message || 'Terjadi kesalahan pada server.',
-                        confirmButtonColor: '#e11d48'
+                        title: t('swal_bulk_del_err', 'Gagal Menghapus'),
+                        text: json.message || t('swal_bulk_del_err_desc', 'Terjadi kesalahan pada server.'),
+                        confirmButtonColor: '#e11d48',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                 }
             } catch (e) {
                 console.error(e);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error Koneksi',
-                    text: 'Gagal menghubungi server.',
-                    confirmButtonColor: '#e11d48'
+                    title: t('swal_conn_error', 'Error Koneksi'),
+                    text: t('swal_conn_error_desc', 'Gagal menghubungi server.'),
+                    confirmButtonColor: '#e11d48',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
             }
         }
@@ -2149,9 +2203,10 @@
                 if (!json.success || !json.data) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Data Tidak Ditemukan',
-                        text: json.message || 'Gagal memuat data peserta.',
-                        confirmButtonColor: '#2563eb'
+                        title: t('swal_not_found_title', 'Data Tidak Ditemukan'),
+                        text: json.message || t('swal_load_failed', 'Gagal memuat data peserta.'),
+                        confirmButtonColor: '#2563eb',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                     return;
                 }
@@ -2169,10 +2224,10 @@
                 if (optPeserta) {
                     if (!window.IS_SUPERADMIN && p.status === 'pendaftar') {
                         optPeserta.disabled = true;
-                        optPeserta.textContent = '✅ Peserta (Sudah Hadir) - [Wajib Scan QR]';
+                        optPeserta.textContent = t('edit_part_status_peserta_restricted', '✅ Peserta (Sudah Hadir) - [Wajib Scan QR]');
                     } else {
                         optPeserta.disabled = false;
-                        optPeserta.textContent = '✅ Peserta (Sudah Hadir)';
+                        optPeserta.textContent = t('edit_part_status_peserta', '✅ Peserta (Sudah Hadir)');
                     }
                 }
                 
@@ -2207,7 +2262,7 @@
             };
 
             btn.disabled = true;
-            btnText.textContent = 'Menyimpan...';
+            btnText.textContent = t('btn_saving', 'Menyimpan...');
 
             try {
                 const res = await fetch(`${window.BASE_URL}/api/participant/${id}/edit`, {
@@ -2221,8 +2276,8 @@
                     closeEditParticipantModal();
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil Diperbarui',
-                        text: 'Informasi data peserta berhasil disimpan.',
+                        title: t('swal_updated_title', 'Berhasil Diperbarui'),
+                        text: t('swal_updated_desc', 'Informasi data peserta berhasil disimpan.'),
                         timer: 1800,
                         showConfirmButton: false
                     });
@@ -2231,22 +2286,24 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Gagal Memperbarui',
-                        text: json.message || 'Terjadi kesalahan saat menyimpan.',
-                        confirmButtonColor: '#2563eb'
+                        title: t('swal_update_fail_title', 'Gagal Memperbarui'),
+                        text: json.message || t('swal_update_fail_desc', 'Terjadi kesalahan saat menyimpan.'),
+                        confirmButtonColor: '#2563eb',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                 }
             } catch (err) {
                 console.error(err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error Koneksi',
-                    text: 'Gagal menghubungi server.',
-                    confirmButtonColor: '#2563eb'
+                    title: t('swal_conn_error', 'Error Koneksi'),
+                    text: t('swal_conn_error_desc', 'Gagal menghubungi server.'),
+                    confirmButtonColor: '#2563eb',
+                    confirmButtonText: t('btn_close', 'Tutup')
                 });
             } finally {
                 btn.disabled = false;
-                btnText.textContent = 'Simpan Perubahan';
+                btnText.textContent = t('edit_part_btn_save', 'Simpan Perubahan');
             }
         });
 
@@ -2261,7 +2318,7 @@
                 <tr>
                     <td colspan="7" class="text-center py-10 text-slate-400">
                         <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600"></i>
-                        Memuat daftar admin...
+                        ${t('admin_loading', 'Memuat daftar admin...')}
                     </td>
                 </tr>
             `;
@@ -2277,13 +2334,13 @@
                     json.data.forEach((u, idx) => {
                         const isSuper = u.role === 'superadmin';
                         const roleBadge = isSuper
-                            ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">SUPER ADMIN</span>`
-                            : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PETUGAS ADMIN</span>`;
+                            ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">${escapeHtml(t('superadmin_badge', 'SUPER ADMIN')).toUpperCase()}</span>`
+                            : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">${escapeHtml(t('petugas_badge', 'PETUGAS ADMIN')).toUpperCase()}</span>`;
 
                         const safeNama = escapeHtml(u.nama);
                         const safeUsername = escapeHtml(u.username);
                         const safeCreated = escapeHtml(u.created_at || '-');
-                        const safeLastLogin = escapeHtml(u.last_login || 'Belum Login');
+                        const safeLastLogin = escapeHtml(u.last_login || t('admin_never_login', 'Belum Login'));
 
                         html += `
                             <tr class="hover:bg-slate-50 transition">
@@ -2298,16 +2355,16 @@
                                 <td class="py-3 px-4 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button onclick="openResetPassModal(${u.id}, '${encodeURIComponent(u.nama)}', '${encodeURIComponent(u.username)}')"
-                                            class="px-2.5 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold transition flex items-center gap-1 border border-purple-200" title="Atur / Reset Password">
+                                            class="px-2.5 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-[11px] font-bold transition flex items-center gap-1 border border-purple-200" title="${t('admin_btn_set_pass', 'Atur Password')}">
                                             <i data-lucide="key" class="w-3.5 h-3.5"></i>
-                                            <span>Atur Password</span>
+                                            <span>${t('admin_btn_set_pass', 'Atur Password')}</span>
                                         </button>
                                         <button onclick="openEditAdminModal(${u.id}, '${encodeURIComponent(u.nama)}', '${encodeURIComponent(u.username)}', '${encodeURIComponent(u.role)}')"
-                                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Edit Profil">
+                                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="${t('admin_btn_edit_profile', 'Edit Profil')}">
                                             <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                                         </button>
                                         <button onclick="deleteAdminUser(${u.id}, '${encodeURIComponent(u.nama)}')"
-                                            class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus Admin">
+                                            class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="${t('admin_btn_delete_user', 'Hapus Admin')}">
                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                         </button>
                                     </div>
@@ -2357,16 +2414,18 @@
                         closeResetPassModal();
                         Swal.fire({
                             icon: 'success',
-                            title: 'Password Diperbarui!',
+                            title: t('swal_pass_updated_title', 'Password Diperbarui!'),
                             text: json.message,
-                            confirmButtonColor: '#9333ea'
+                            confirmButtonColor: '#9333ea',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal',
+                            title: t('swal_error_title', 'Gagal'),
                             text: json.message || 'Gagal mengubah password.',
-                            confirmButtonColor: '#9333ea'
+                            confirmButtonColor: '#9333ea',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                     }
                 } catch (err) {
@@ -2377,7 +2436,7 @@
 
         // Add / Edit Admin Modal Functions
         function openAddAdminModal() {
-            document.getElementById('adminUserModalTitle').textContent = 'Tambah Admin Baru';
+            document.getElementById('adminUserModalTitle').textContent = t('admin_modal_add_title', 'Tambah Admin Baru');
             document.getElementById('modalAdminId').value = '';
             document.getElementById('modalAdminNama').value = '';
             document.getElementById('modalAdminUsername').value = '';
@@ -2389,7 +2448,7 @@
         }
 
         function openEditAdminModal(id, encodedNama, username, role) {
-            document.getElementById('adminUserModalTitle').textContent = 'Edit Data Admin';
+            document.getElementById('adminUserModalTitle').textContent = t('admin_modal_edit_title', 'Edit Data Admin');
             document.getElementById('modalAdminId').value = id;
             document.getElementById('modalAdminNama').value = decodeURIComponent(encodedNama);
             document.getElementById('modalAdminUsername').value = username;
@@ -2421,7 +2480,13 @@
                         url = `${window.BASE_URL}/api/admin/users/${id}/edit`;
                     } else {
                         if (!password) {
-                            Swal.fire({ icon: 'warning', title: 'Password Wajib', text: 'Masukkan password awal!', confirmButtonColor: '#9333ea' });
+                            Swal.fire({
+                                icon: 'warning',
+                                title: t('swal_pass_req_title', 'Password Wajib'),
+                                text: t('swal_pass_req_desc', 'Masukkan password awal!'),
+                                confirmButtonColor: '#9333ea',
+                                confirmButtonText: t('btn_close', 'Tutup')
+                            });
                             return;
                         }
                         payload.password = password;
@@ -2438,17 +2503,19 @@
                         closeAdminUserModal();
                         Swal.fire({
                             icon: 'success',
-                            title: 'Berhasil!',
+                            title: t('swal_success_title', 'Berhasil!'),
                             text: json.message,
-                            confirmButtonColor: '#9333ea'
+                            confirmButtonColor: '#9333ea',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                         loadAdminUsersData();
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal',
+                            title: t('swal_error_title', 'Gagal'),
                             text: json.message || 'Terjadi kesalahan.',
-                            confirmButtonColor: '#9333ea'
+                            confirmButtonColor: '#9333ea',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                         loadAdminUsersData();
                     }
@@ -2461,14 +2528,14 @@
         async function deleteAdminUser(id, encodedNama) {
             const nama = decodeURIComponent(encodedNama);
             const confirm = await Swal.fire({
-                title: 'Hapus User Admin?',
-                text: `Apakah Anda yakin ingin menghapus akun ${nama}?`,
+                title: t('swal_delete_admin_title', 'Hapus User Admin?'),
+                text: t('swal_delete_admin_desc', 'Apakah Anda yakin ingin menghapus akun {name}?').replace('{name}', name),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_btn_yes_delete', 'Ya, Hapus'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -2479,7 +2546,7 @@
                 if (res.ok && json.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Dihapus',
+                        title: t('swal_deleted_title', 'Dihapus'),
                         text: json.message,
                         timer: 1500,
                         showConfirmButton: false
@@ -2488,9 +2555,10 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Gagal Menghapus',
+                        title: t('swal_error_title', 'Gagal Menghapus'),
                         text: json.message || 'Gagal menghapus admin.',
-                        confirmButtonColor: '#9333ea'
+                        confirmButtonColor: '#9333ea',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                 }
             } catch (err) {
@@ -2551,14 +2619,14 @@
 
         async function resetToDefaultFavicon() {
             const confirm = await Swal.fire({
-                title: 'Reset FavIcon Acara?',
-                text: 'FavIcon tab browser akan dikembalikan ke icon default sistem.',
+                title: t('swal_reset_favicon_title', 'Reset FavIcon Acara?'),
+                text: t('swal_reset_favicon_desc', 'FavIcon tab browser akan dikembalikan ke icon default sistem.'),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#16a34a',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Reset',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_reset_yes', 'Ya, Reset'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -2568,7 +2636,7 @@
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('inputEventFavicon').value = '';
-                    document.getElementById('faviconFileName').textContent = 'Favicon default aktif';
+                    document.getElementById('faviconFileName').textContent = t('settings_favicon_default_active', 'Favicon default aktif');
                     
                     const smallImg = document.getElementById('previewFaviconSmall');
                     const tabImg = document.getElementById('previewTabFavicon');
@@ -2585,8 +2653,8 @@
 
                     Swal.fire({
                         icon: 'success',
-                        title: 'FavIcon Direset',
-                        text: 'FavIcon berhasil dikembalikan ke default.',
+                        title: t('swal_reset_favicon_success_title', 'FavIcon Direset'),
+                        text: t('swal_reset_favicon_success_desc', 'FavIcon berhasil dikembalikan ke default.'),
                         timer: 1500,
                         showConfirmButton: false
                     });
@@ -2599,7 +2667,7 @@
         function handleLogoPreview(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                document.getElementById('logoFileName').textContent = `File dipilih: ${file.name}`;
+                document.getElementById('logoFileName').textContent = `File: ${file.name}`;
                 
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -2615,14 +2683,14 @@
 
         async function resetToDefaultLogo() {
             const confirm = await Swal.fire({
-                title: 'Reset Logo Acara?',
-                text: 'Logo acara akan dikembalikan ke icon default sistem.',
+                title: t('swal_reset_logo_title', 'Reset Logo Acara?'),
+                text: t('swal_reset_logo_desc', 'Logo acara akan dikembalikan ke icon default sistem.'),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#16a34a',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Reset',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_reset_yes', 'Ya, Reset'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (!confirm.isConfirmed) return;
@@ -2632,7 +2700,7 @@
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('inputEventLogo').value = '';
-                    document.getElementById('logoFileName').textContent = 'Logo default aktif';
+                    document.getElementById('logoFileName').textContent = t('settings_logo_none_active', 'Belum ada file baru dipilih');
                     const img = document.getElementById('previewLogoImg');
                     const defaultIcon = document.getElementById('previewDefaultIcon');
                     img.src = '';
@@ -2641,8 +2709,8 @@
 
                     Swal.fire({
                         icon: 'success',
-                        title: 'Logo Direset',
-                        text: 'Logo berhasil dikembalikan ke default.',
+                        title: t('swal_reset_logo_success_title', 'Logo Direset'),
+                        text: t('swal_reset_logo_success_desc', 'Logo berhasil dikembalikan ke default.'),
                         timer: 1500,
                         showConfirmButton: false
                     });
@@ -2658,7 +2726,7 @@
                 const formData = new FormData(settingsForm);
 
                 saveSettingsBtn.disabled = true;
-                saveSettingsBtnText.textContent = 'Menyimpan...';
+                saveSettingsBtnText.textContent = t('btn_saving', 'Menyimpan...');
 
                 try {
                     const res = await fetch(`${window.BASE_URL}/api/settings`, {
@@ -2670,25 +2738,27 @@
                     if (res.ok && data.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Pengaturan Disimpan!',
-                            text: 'Nama acara dan logo resmi telah diperbarui untuk seluruh sistem.',
-                            confirmButtonColor: '#16a34a'
+                            title: t('swal_saved_success_title', 'Pengaturan Disimpan!'),
+                            text: t('swal_saved_success_desc', 'Nama acara, logo resmi, dan pengaturan bahasa telah diperbarui untuk seluruh sistem.'),
+                            confirmButtonColor: '#16a34a',
+                            confirmButtonText: 'OK'
                         }).then(() => {
                             window.location.reload();
                         });
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal Menyimpan',
+                            title: t('swal_save_fail_title', 'Gagal Menyimpan'),
                             text: data.message || 'Terjadi kesalahan.',
-                            confirmButtonColor: '#16a34a'
+                            confirmButtonColor: '#16a34a',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                     }
                 } catch (err) {
                     console.error(err);
                 } finally {
                     saveSettingsBtn.disabled = false;
-                    saveSettingsBtnText.textContent = 'Simpan Perubahan Acara';
+                    saveSettingsBtnText.textContent = t('settings_btn_save', 'Simpan Perubahan Acara');
                 }
             });
         }
@@ -2717,18 +2787,20 @@
                     if (res.ok && data.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Informasi profil / password akun Anda berhasil diperbarui.',
-                            confirmButtonColor: '#16a34a'
+                            title: t('swal_success_title', 'Berhasil'),
+                            text: t('swal_profile_updated_desc', 'Informasi profil / password akun Anda berhasil diperbarui.'),
+                            confirmButtonColor: '#16a34a',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                         document.getElementById('currPassword').value = '';
                         document.getElementById('newPassword').value = '';
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal',
-                            text: data.message || 'Password saat ini salah.',
-                            confirmButtonColor: '#16a34a'
+                            title: t('swal_error_title', 'Gagal'),
+                            text: data.message || t('swal_curr_pass_wrong', 'Password saat ini salah.'),
+                            confirmButtonColor: '#16a34a',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                     }
                 } catch (err) {
@@ -2747,7 +2819,7 @@
             
             const downloadBtn = document.getElementById('qrModalDownload');
             downloadBtn.href = qrUrl;
-            downloadBtn.download = `qr_semnasretro_${qrCode}.png`;
+            downloadBtn.download = `qr_ticket_${qrCode}.png`;
 
             document.getElementById('qrModalTicketLink').href = `${window.BASE_URL}/ticket/${qrCode}`;
 
@@ -2778,14 +2850,14 @@
 
         // ==========================================
         // CSV IMPORT FUNCTIONS
-        // ==========================================
+        // ==========================
         function openImportModal() {
             const modal = document.getElementById('importCsvModal');
             if (!modal) return;
             const fileInput = document.getElementById('csvFileInput');
             if (fileInput) fileInput.value = '';
             const fileName = document.getElementById('csvFileName');
-            if (fileName) fileName.textContent = 'Klik untuk memilih file CSV';
+            if (fileName) fileName.textContent = t('import_pick_file_hint', 'Klik untuk memilih file CSV');
             modal.classList.remove('hidden');
             lucide.createIcons();
         }
@@ -2810,9 +2882,10 @@
                 if (!fileInput.files || fileInput.files.length === 0) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'File Belum Dipilih',
-                        text: 'Silakan pilih file CSV terlebih dahulu.',
-                        confirmButtonColor: '#2563eb'
+                        title: t('swal_file_not_selected_title', 'File Belum Dipilih'),
+                        text: t('swal_file_not_selected_desc', 'Silakan pilih file CSV terlebih dahulu.'),
+                        confirmButtonColor: '#2563eb',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                     return;
                 }
@@ -2824,7 +2897,7 @@
                 const btn = document.getElementById('btnSubmitImport');
                 const btnText = document.getElementById('btnSubmitImportText');
                 btn.disabled = true;
-                btnText.textContent = 'Mengimpor Data...';
+                btnText.textContent = t('import_processing', 'Mengimpor Data...');
 
                 try {
                     const res = await fetch(`${window.BASE_URL}/api/import-csv`, {
@@ -2838,56 +2911,59 @@
                         const s = data.summary;
                         Swal.fire({
                             icon: 'success',
-                            title: 'Impor Selesai!',
+                            title: t('swal_imported_success_title', 'Impor Selesai!'),
                             html: `
                                 <div class="text-left text-xs sm:text-sm space-y-2 mt-2">
                                     <p class="font-medium text-slate-700">${escapeHtml(data.message)}</p>
                                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 font-mono text-xs">
-                                        <div class="flex justify-between"><span>Total Diproses:</span> <strong>${s.total}</strong></div>
-                                        <div class="flex justify-between text-emerald-700"><span>Data Baru Ditambahkan:</span> <strong>+${s.inserted}</strong></div>
-                                        <div class="flex justify-between text-blue-700"><span>Data Diperbarui:</span> <strong>${s.updated}</strong></div>
-                                        <div class="flex justify-between text-slate-500"><span>Data Dilewati:</span> <strong>${s.skipped}</strong></div>
-                                        ${s.errors > 0 ? `<div class="flex justify-between text-rose-600"><span>Baris Error:</span> <strong>${s.errors}</strong></div>` : ''}
+                                        <div class="flex justify-between"><span>${t('import_stat_total', 'Total Diproses:')}</span> <strong>${s.total}</strong></div>
+                                        <div class="flex justify-between text-emerald-700"><span>${t('import_stat_inserted', 'Data Baru Ditambahkan:')}</span> <strong>+${s.inserted}</strong></div>
+                                        <div class="flex justify-between text-blue-700"><span>${t('import_stat_updated', 'Data Diperbarui:')}</span> <strong>${s.updated}</strong></div>
+                                        <div class="flex justify-between text-slate-500"><span>${t('import_stat_skipped', 'Data Dilewati:')}</span> <strong>${s.skipped}</strong></div>
+                                        ${s.errors > 0 ? `<div class="flex justify-between text-rose-600"><span>${t('import_stat_errors', 'Baris Error:')}</span> <strong>${s.errors}</strong></div>` : ''}
                                     </div>
                                 </div>
                             `,
-                            confirmButtonColor: '#16a34a'
+                            confirmButtonColor: '#16a34a',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                         loadParticipantsData();
                         updateStats();
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal Mengimpor CSV',
+                            title: t('swal_import_fail_title', 'Gagal Mengimpor CSV'),
                             text: data.message || 'Terjadi kesalahan saat memproses file CSV.',
-                            confirmButtonColor: '#e11d48'
+                            confirmButtonColor: '#e11d48',
+                            confirmButtonText: t('btn_close', 'Tutup')
                         });
                     }
                 } catch (err) {
                     console.error('Error importing CSV:', err);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Koneksi Gagal',
-                        text: 'Tidak dapat mengirim file ke server.',
-                        confirmButtonColor: '#e11d48'
+                        title: t('swal_conn_error', 'Error Koneksi'),
+                        text: t('swal_conn_error_desc', 'Gagal menghubungi server.'),
+                        confirmButtonColor: '#e11d48',
+                        confirmButtonText: t('btn_close', 'Tutup')
                     });
                 } finally {
                     btn.disabled = false;
-                    btnText.textContent = 'Mulai Impor Data';
+                    btnText.textContent = t('import_btn_start', 'Mulai Impor Data');
                 }
             });
         }
 
         async function handleLogout() {
             const confirm = await Swal.fire({
-                title: 'Logout Console?',
-                text: 'Anda akan keluar dari sesi admin.',
+                title: t('swal_logout_title', 'Logout Console?'),
+                text: t('swal_logout_desc', 'Anda akan keluar dari sesi admin.'),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#e11d48',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Logout',
-                cancelButtonText: 'Batal'
+                confirmButtonText: t('swal_logout_yes', 'Ya, Logout'),
+                cancelButtonText: t('btn_cancel', 'Batal')
             });
 
             if (confirm.isConfirmed) {

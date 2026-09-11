@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app_language or 'id' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,18 +106,18 @@
                     {% endif %}
                     <div class="truncate">
                         <span class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight block leading-tight truncate">{{ event_settings.event_name }}</span>
-                        <span class="text-xs font-semibold text-emerald-600 tracking-wider uppercase">Sistem Absensi & Registrasi</span>
+                        <span class="text-xs font-semibold text-emerald-600 tracking-wider uppercase">{{ t('app_subtitle') }}</span>
                     </div>
                 </a>
 
                 <nav class="flex items-center gap-2 sm:gap-3">
-                    <button onclick="openLanModal()" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5" title="Buka QR Link Akses Jaringan Lokal">
+                    <button onclick="openLanModal()" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5" title="{{ t('wifi_modal_title') }}">
                         <i data-lucide="wifi" class="w-4 h-4 text-emerald-600"></i>
-                        <span class="hidden md:inline">Akses Jaringan HP/Wi-Fi</span>
+                        <span class="hidden md:inline">{{ t('wifi_access') }}</span>
                     </button>
                     <a href="{{ url_for('index') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors bg-emerald-600 text-white shadow-md shadow-emerald-600/20 flex items-center gap-2">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
-                        <span>Pendaftaran</span>
+                        <span>{{ t('nav_registration') }}</span>
                     </a>
                 </nav>
             </div>
@@ -130,7 +130,7 @@
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                     <i data-lucide="wifi" class="w-5 h-5 text-emerald-600"></i>
-                    <h3 class="font-bold text-sm text-slate-800">Akses Jaringan Wi-Fi / HP</h3>
+                    <h3 class="font-bold text-sm text-slate-800">{{ t('wifi_modal_title') }}</h3>
                 </div>
                 <button onclick="closeLanModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -138,18 +138,18 @@
             </div>
 
             <p class="text-xs text-slate-600">
-                Scan QR Code ini menggunakan kamera HP untuk membuka form pendaftaran seminar di jaringan Wi-Fi lokal:
+                {{ t('wifi_modal_subtitle') }}
             </p>
 
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 inline-block">
                 <img id="lanQrImage" src="{{ request.script_root }}/api/qr-url.png" alt="QR Link Form" class="w-48 h-48 object-contain mx-auto">
                 <div class="mt-2 font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 break-all" id="lanUrlText">
-                    Memuat URL...
+                    {{ t('btn_loading') }}
                 </div>
             </div>
 
             <p class="text-[11px] text-slate-400">
-                Pastikan HP / laptop peserta terhubung ke jaringan Wi-Fi yang sama dengan komputer ini.
+                {% if app_language == 'en' %}Make sure participant's mobile phone or laptop is connected to the same Wi-Fi network as this computer.{% else %}Pastikan HP / laptop peserta terhubung ke jaringan Wi-Fi yang sama dengan komputer ini.{% endif %}
             </p>
         </div>
     </div>
@@ -162,11 +162,11 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>© 2026 SeminarPass. Sistem Registrasi & Absensi QR Code Seminar Nasional.</p>
+            <p>© 2026 {{ event_settings.event_name }}. {{ t('footer_rights') }}</p>
             <p class="flex items-center gap-1">
-                <span>Status Server:</span>
+                <span>{% if app_language == 'en' %}Server Status:{% else %}Status Server:{% endif %}</span>
                 <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Aktif & Siap
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {% if app_language == 'en' %}Active & Ready{% else %}Aktif & Siap{% endif %}
                 </span>
             </p>
         </div>

@@ -10,6 +10,7 @@ import qrcode
 from qrcode.image.pil import PilImage
 
 import database
+from translations import get_translation, get_all_translations_json
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -132,8 +133,16 @@ def inject_settings():
     if favicon_val and favicon_val.startswith('/static/'):
         settings['event_favicon'] = f"{prefix}{favicon_val}"
 
+    app_language = settings.get('app_language', 'id')
+
+    def t(key, **kwargs):
+        return get_translation(key, lang=app_language, **kwargs)
+
     return {
         'event_settings': settings,
+        'app_language': app_language,
+        't': t,
+        'translations_json': get_all_translations_json(app_language),
         'local_ip': local_ip,
         'server_port': port,
         'local_url': f"http://{local_ip}:{port}",
@@ -668,6 +677,11 @@ def api_update_settings():
     if 'event_info' in request.form:
         event_info = request.form.get('event_info', '').strip()
         database.set_setting('event_info', event_info)
+
+    if 'app_language' in request.form:
+        app_language = request.form.get('app_language', 'id').strip().lower()
+        if app_language in ['id', 'en']:
+            database.set_setting('app_language', app_language)
 
     # Periksa apakah ada file favicon yang diunggah
     if 'event_favicon' in request.files:

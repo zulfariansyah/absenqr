@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}E-Ticket Seminar - {{ participant.nama_lengkap if participant else 'Tiket Tidak Ditemukan' }}{% endblock %}
+{% block title %}{{ t('ticket_title') }} - {{ participant.nama_lengkap if participant else ('Tiket' if app_language == 'id' else 'Ticket') }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -26,10 +26,10 @@
             <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="alert-triangle" class="w-8 h-8"></i>
             </div>
-            <h2 class="text-2xl font-bold text-slate-900">Tiket Tidak Ditemukan</h2>
+            <h2 class="text-2xl font-bold text-slate-900">{% if app_language == 'en' %}Ticket Not Found{% else %}Tiket Tidak Ditemukan{% endif %}</h2>
             <p class="mt-2 text-slate-600 text-sm">{{ error }}</p>
             <a href="{{ url_for('index') }}" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Form Pendaftaran
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> {{ t('ticket_btn_back_home') }}
             </a>
         </div>
     {% else %}
@@ -42,11 +42,11 @@
                 {% else %}
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold uppercase tracking-wider mb-2">
                         <i data-lucide="ticket" class="w-3.5 h-3.5"></i>
-                        E-Ticket Absensi Seminar
+                        {{ t('ticket_event_title') }}
                     </div>
                 {% endif %}
                 <h1 class="text-xl sm:text-2xl font-black tracking-tight uppercase">{{ event_settings.event_name }}</h1>
-                <p class="text-xs text-slate-300 mt-1">Tunjukkan QR Code ini pada saat registrasi kehadiran di lokasi seminar</p>
+                <p class="text-xs text-slate-300 mt-1">{{ t('ticket_qr_desc') }}</p>
             </div>
 
             <!-- Perforation line -->
@@ -62,7 +62,7 @@
                 <div class="inline-block bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-inner">
                     <img src="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" alt="QR Code {{ participant.qr_code }}" class="w-52 h-52 object-contain mx-auto">
                     <div class="mt-3">
-                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Kode Absensi</div>
+                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">{{ t('ticket_lbl_qr') }}</div>
                         <div class="font-mono text-2xl font-extrabold text-slate-900 tracking-widest">{{ participant.qr_code }}</div>
                     </div>
                 </div>
@@ -72,13 +72,13 @@
                     {% if participant.status == 'peserta' %}
                         <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold uppercase tracking-wider">
                             <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
-                            STATUS: PESERTA (SUDAH HADIR)
+                            STATUS: {{ t('ticket_status_attended') }}
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">Waktu Hadir: {{ participant.attended_at }}</p>
+                        <p class="text-xs text-slate-500 mt-1">{{ t('ticket_lbl_time_att') }} {{ participant.attended_at }}</p>
                     {% else %}
                         <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold uppercase tracking-wider">
                             <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
-                            STATUS: PENDAFTAR (BELUM SCAN ABSENSI)
+                            STATUS: {{ t('ticket_status_registered') }}
                         </div>
                     {% endif %}
                 </div>
@@ -86,33 +86,53 @@
                 <!-- Participant Details List -->
                 <div class="bg-slate-50 rounded-2xl p-4 text-left text-sm divide-y divide-slate-200 border border-slate-200">
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">Nama Lengkap</span>
+                        <span class="text-slate-500 font-medium">{{ t('ticket_lbl_name') }}</span>
                         <span class="font-bold text-slate-900 text-right">{{ participant.nama_lengkap }}</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">No. Identitas (NIM/NIP/NIDN)</span>
+                        <span class="text-slate-500 font-medium">{{ t('ticket_lbl_id') }}</span>
                         <span class="font-bold text-slate-900 font-mono">{{ participant.nim_nip }}</span>
                     </div>
                     {% if participant.no_hp %}
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">No. HP / WA</span>
+                        <span class="text-slate-500 font-medium">{{ t('reg_lbl_phone') }}</span>
                         <span class="font-bold text-slate-900 font-mono">{{ participant.no_hp }}</span>
                     </div>
                     {% endif %}
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">Institusi</span>
+                        <span class="text-slate-500 font-medium">{{ t('ticket_lbl_inst') }}</span>
                         <span class="font-bold text-slate-900 text-right">{{ participant.institusi }}</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">Pekerjaan</span>
-                        <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ participant.pekerjaan }}</span>
+                        <span class="text-slate-500 font-medium">{{ t('ticket_lbl_job') }}</span>
+                        <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            {% if participant.pekerjaan == 'Mahasiswa S1' %}{{ t('job_mhs_s1') }}
+                            {% elif participant.pekerjaan == 'Mahasiswa S2' %}{{ t('job_mhs_s2') }}
+                            {% elif participant.pekerjaan == 'Dosen' %}{{ t('job_dosen') }}
+                            {% elif participant.pekerjaan == 'Praktisi' %}{{ t('job_praktisi') }}
+                            {% elif participant.pekerjaan == 'Lainnya' %}{{ t('job_lainnya') }}
+                            {% else %}{{ participant.pekerjaan }}{% endif %}
+                        </span>
                     </div>
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">Bidang Keilmuan</span>
-                        <span class="font-bold text-slate-900 text-right">{{ participant.bidang_keilmuan or '-' }}</span>
+                        <span class="text-slate-500 font-medium">{{ t('ticket_lbl_bidang') }}</span>
+                        <span class="font-bold text-slate-900 text-right">
+                            {% if participant.bidang_keilmuan == 'Informatika' %}{{ t('bidang_informatika') }}
+                            {% elif participant.bidang_keilmuan == 'Sistem Informasi' %}{{ t('bidang_si') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Pertambangan' %}{{ t('bidang_tambang') }}
+                            {% elif participant.bidang_keilmuan == 'Arsitektur' %}{{ t('bidang_arsitektur') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Kimia' %}{{ t('bidang_kimia') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Geologi' %}{{ t('bidang_geologi') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Elektro' %}{{ t('bidang_elektro') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Lingkungan' %}{{ t('bidang_lingkungan') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Sipil' %}{{ t('bidang_sipil') }}
+                            {% elif participant.bidang_keilmuan == 'Teknik Industri' %}{{ t('bidang_industri') }}
+                            {% elif participant.bidang_keilmuan == 'Lainnya' %}{{ t('bidang_lainnya') }}
+                            {% else %}{{ participant.bidang_keilmuan or '-' }}{% endif %}
+                        </span>
                     </div>
                     <div class="py-2 flex justify-between">
-                        <span class="text-slate-500 font-medium">Waktu Daftar</span>
+                        <span class="text-slate-500 font-medium">{{ t('col_time_reg') }}</span>
                         <span class="text-slate-600 text-xs">{{ participant.created_at }}</span>
                     </div>
                 </div>
@@ -124,7 +144,7 @@
                         <i data-lucide="megaphone" class="w-4 h-4"></i>
                     </div>
                     <div class="flex-1">
-                        <span class="font-extrabold text-blue-950 uppercase block">Informasi Acara:</span>
+                        <span class="font-extrabold text-blue-950 uppercase block">{% if app_language == 'en' %}Event Information:{% else %}Informasi Acara:{% endif %}</span>
                         <div class="mt-1 leading-relaxed font-medium">
                             {{ event_settings.event_info | autolink }}
                         </div>
@@ -134,19 +154,19 @@
 
                 <!-- Action buttons (No print) -->
                 <div class="grid grid-cols-2 gap-3 no-print pt-2">
-                    <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="qr_semnasretro_{{ participant.qr_code }}.png"
+                    <a href="{{ request.script_root }}/api/qr/{{ participant.qr_code }}.png" download="qr_ticket_{{ participant.qr_code }}.png"
                         class="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
-                        <i data-lucide="download" class="w-4 h-4"></i> Download QR
+                        <i data-lucide="download" class="w-4 h-4"></i> {{ t('reg_btn_save_qr') }}
                     </a>
                     <button onclick="window.print()"
                         class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow">
-                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak Tiket
+                        <i data-lucide="printer" class="w-4 h-4"></i> {% if app_language == 'en' %}Print Ticket{% else %}Cetak Tiket{% endif %}
                     </button>
                 </div>
 
                 <div class="no-print pt-2">
                     <a href="{{ url_for('index') }}" class="text-xs text-slate-500 hover:text-emerald-600 transition inline-flex items-center gap-1">
-                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Formulir Pendaftaran Baru
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> {{ t('reg_btn_register_another') }}
                     </a>
                 </div>
             </div>

@@ -636,6 +636,97 @@ class SeminarAttendanceSystemTestCase(unittest.TestCase):
         sa_exp = self.app.get('/api/export-csv')
         self.assertEqual(sa_exp.status_code, 200)
 
+    def test_20_language_switch_and_i18n(self):
+        """Uji toggle switch bahasa aplikasi antara Bahasa Indonesia (ID) dan English (EN)"""
+        # 1. Daftarkan 1 peserta contoh
+        reg_res = self.app.post('/api/register', json={
+            'nim_nip': '999888777',
+            'nama_lengkap': 'Alexander Hamilton',
+            'no_hp': '08123456789',
+            'institusi': 'Global Institute',
+            'pekerjaan': 'Praktisi',
+            'bidang_keilmuan': 'Informatika'
+        })
+        qr_code = json.loads(reg_res.data)['data']['qr_code']
+
+        # 2. Verifikasi default bahasa adalah 'id'
+        settings = database.get_all_settings()
+        self.assertEqual(settings.get('app_language', 'id'), 'id')
+
+        # 3. Cek halaman publik (ID)
+        home_id = self.app.get('/')
+        self.assertEqual(home_id.status_code, 200)
+        home_id_text = home_id.data.decode('utf-8')
+        self.assertIn('Formulir Pendaftaran Seminar', home_id_text)
+        self.assertIn('Daftar Sekarang &amp; Dapatkan E-Ticket', home_id_text)
+
+        ticket_id = self.app.get(f'/ticket/{qr_code}')
+        self.assertEqual(ticket_id.status_code, 200)
+        ticket_id_text = ticket_id.data.decode('utf-8')
+        self.assertIn('E-Ticket Digital Seminar', ticket_id_text)
+        self.assertIn('Tiket Resmi Kehadiran', ticket_id_text)
+
+        login_id = self.app.get('/console')
+        self.assertEqual(login_id.status_code, 200)
+        login_id_text = login_id.data.decode('utf-8')
+        self.assertIn('Masuk ke Console', login_id_text)
+
+        # 4. Login dan ubah pengaturan ke Bahasa Inggris ('en')
+        self.login_admin('admin', 'admin123')
+        set_en_res = self.app.post('/api/settings', data={
+            'event_name': 'International AI Conference 2026',
+            'app_language': 'en'
+        })
+        self.assertEqual(set_en_res.status_code, 200)
+        self.assertEqual(json.loads(set_en_res.data)['settings']['app_language'], 'en')
+
+        # 5. Cek halaman publik setelah diubah ke English (EN)
+        home_en = self.app.get('/')
+        self.assertEqual(home_en.status_code, 200)
+        home_en_text = home_en.data.decode('utf-8')
+        self.assertIn('Seminar Registration Form', home_en_text)
+        self.assertIn('Register Now &amp; Get E-Ticket', home_en_text)
+        self.assertIn('Full Name (with academic title if any)', home_en_text)
+
+        ticket_en = self.app.get(f'/ticket/{qr_code}')
+        self.assertEqual(ticket_en.status_code, 200)
+        ticket_en_text = ticket_en.data.decode('utf-8')
+        self.assertIn('Seminar Digital E-Ticket', ticket_en_text)
+        self.assertIn('Official Attendance Ticket', ticket_en_text)
+        self.assertIn('Present this QR Code to the committee', ticket_en_text)
+
+        # Logout untuk cek halaman login dalam bahasa Inggris
+        self.app.post('/api/logout')
+        login_en = self.app.get('/console')
+        self.assertEqual(login_en.status_code, 200)
+        login_en_text = login_en.data.decode('utf-8')
+        self.assertIn('Sign In to Console', login_en_text)
+        self.assertIn('Admin Username', login_en_text)
+
+        # Login kembali dan cek Admin Console dalam bahasa Inggris
+        self.login_admin('admin', 'admin123')
+        admin_en = self.app.get('/console')
+        self.assertEqual(admin_en.status_code, 200)
+        admin_en_text = admin_en.data.decode('utf-8')
+        self.assertIn('1. Scan Attendance', admin_en_text)
+        self.assertIn('2. Participant Info', admin_en_text)
+        self.assertIn('3. Event Settings', admin_en_text)
+        self.assertIn('4. Admin Management', admin_en_text)
+        self.assertIn('QR Code Camera Scanner', admin_en_text)
+        self.assertIn('Save Event Changes', admin_en_text)
+
+        # 6. Switch kembali ke Bahasa Indonesia ('id')
+        set_id_res = self.app.post('/api/settings', data={
+            'event_name': 'Seminar Nasional AI 2026',
+            'app_language': 'id'
+        })
+        self.assertEqual(set_id_res.status_code, 200)
+        self.assertEqual(json.loads(set_id_res.data)['settings']['app_language'], 'id')
+
+        # Cek kembali dalam Bahasa Indonesia
+        home_back_id = self.app.get('/')
+        self.assertIn('Formulir Pendaftaran Seminar', home_back_id.data.decode('utf-8'))
+
 if __name__ == '__main__':
     unittest.main()
 
